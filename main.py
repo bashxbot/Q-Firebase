@@ -315,15 +315,21 @@ def index():
     if 'user_tier' not in session:
         return redirect(url_for('login'))
 
-    app_data['url_profiles'] = load_url_profiles()
+    username = session.get('username', '')
+    all_profiles = load_url_profiles()
+    # Filter to show only current user's profiles
+    user_profiles = {name.replace(f"{username}_", ""): url for name, url in all_profiles.items() 
+                    if name.startswith(f"{username}_")}
+    
+    app_data['url_profiles'] = user_profiles
     tree_data = build_tree_structure(app_data['original_data'])
 
-    user_role = get_user_role(session.get('username', ''))
+    user_role = get_user_role(username)
 
     return render_template('index.html', 
                          tier=session['user_tier'],
                          tree_data=tree_data,
-                         url_profiles=list(app_data['url_profiles'].keys()),
+                         url_profiles=list(user_profiles.keys()),
                          has_schema=app_data['json_schema'] is not None,
                          has_validate=validate is not None,
                          user_role=user_role,
@@ -675,19 +681,23 @@ def fetch_data():
     if 'user_tier' not in session:
         return jsonify({'success': False, 'error': 'Not authenticated'})
 
-    url = request.json.get('url', '').strip()
-    if not url or "your-project-id" in url:
-        return jsonify({'success': False, 'error': 'Please enter a valid Firebase URL'})
-
     try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data received'})
+            
+        url = data.get('url', '').strip()
+        if not url or "your-project-id" in url:
+            return jsonify({'success': False, 'error': 'Please enter a valid Firebase URL'})
+
         cleaned_base_url = url.rstrip('/')
         full_url = f"{cleaned_base_url}/.json"
 
         response = requests.get(full_url, timeout=10)
         response.raise_for_status()
 
-        data = response.json(object_pairs_hook=OrderedDict)
-        app_data['original_data'] = data if data is not None else OrderedDict()
+        firebase_data = response.json(object_pairs_hook=OrderedDict)
+        app_data['original_data'] = firebase_data if firebase_data is not None else OrderedDict()
         app_data['live_data_on_fetch'] = copy.deepcopy(app_data['original_data'])
 
         tree_data = build_tree_structure(app_data['original_data'])
@@ -698,12 +708,20 @@ def fetch_data():
             'message': 'Data fetched successfully!'
         })
 
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'Request timed out. Please check the URL and try again.'})
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': 'Connection error. Please check your internet connection and the URL.'})
+    except requests.exceptions.HTTPError as e:
+        return jsonify({'success': False, 'error': f'HTTP error {e.response.status_code}: Please check the URL and permissions.'})
     except requests.exceptions.RequestException as e:
-        return jsonify({'success': False, 'error': f'Network error: {e}'})
+        return jsonify({'success': False, 'error': f'Network error: {str(e)}'})
     except json.JSONDecodeError:
         return jsonify({'success': False, 'error': 'Invalid JSON response from server'})
+    except ValueError as e:
+        return jsonify({'success': False, 'error': f'Invalid data: {str(e)}'})
     except Exception as e:
-        return jsonify({'success': False, 'error': f'An unexpected error occurred: {e}'})
+        return jsonify({'success': False, 'error': f'An unexpected error occurred: {str(e)}'})
 
 @app.route('/api/get_node_value', methods=['POST'])
 def get_node_value():
@@ -999,10 +1017,15 @@ def url_profiles():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required.'})
     
+    username = session.get('username', '')
     profiles = load_url_profiles()
     
+    # Filter profiles to show only current user's profiles
+    user_profiles = {name: url for name, url in profiles.items() 
+                    if name.startswith(f"{username}_") or name == username}
+    
     if request.method == 'GET':
-        return jsonify({'success': True, 'profiles': profiles})
+        return jsonify({'success': True, 'profiles': user_profiles})
     
     elif request.method == 'POST':
         name = request.json.get('name', '').strip()
@@ -1011,10 +1034,13 @@ def url_profiles():
         if not name or not url:
             return jsonify({'success': False, 'error': 'Name and URL are required'})
         
-        if name in profiles:
+        # Add username prefix to make it private
+        profile_key = f"{username}_{name}"
+        
+        if profile_key in profiles:
             return jsonify({'success': False, 'error': f'Profile "{name}" already exists'})
         
-        profiles[name] = url
+        profiles[profile_key] = url
         if save_url_profiles(profiles):
             return jsonify({'success': True, 'message': f'URL profile "{name}" added'})
         else:
@@ -1022,11 +1048,12 @@ def url_profiles():
     
     elif request.method == 'DELETE':
         name = request.json.get('name', '').strip()
+        profile_key = f"{username}_{name}"
         
-        if name not in profiles:
+        if profile_key not in profiles:
             return jsonify({'success': False, 'error': 'Profile not found'})
         
-        del profiles[name]
+        del profiles[profile_key]
         if save_url_profiles(profiles):
             return jsonify({'success': True, 'message': f'URL profile "{name}" removed'})
         else:

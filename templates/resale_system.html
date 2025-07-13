@@ -49,21 +49,126 @@
             </button>
         </div>
 
-        <div class="best-resellers">
-            <h3>
+        
+    </div>
+    {% endif %}
+
+    
+
+    <!-- Admin/Reseller View -->
+    {% if user_role == 'admin' or user_role == 'reseller' %}
+    <div class="reseller-dashboard">
+        <div class="resale-tabs">
+            <button class="resale-tab active" onclick="switchResaleTab('top-resellers')">
                 <i class="fas fa-trophy"></i>
                 Top Resellers
-            </h3>
-            <div id="bestResellersList" class="top-resellers-scroll"></div>
-        </div>
-
-        <div class="reseller-list">
-            <h3>
+            </button>
+            <button class="resale-tab" onclick="switchResaleTab('all-resellers')">
                 <i class="fas fa-users"></i>
                 All Resellers
-            </h3>
-            <div id="resellersList"></div>
+            </button>
+            {% if user_role == 'reseller' %}
+            <button class="resale-tab" onclick="switchResaleTab('dashboard')">
+                <i class="fas fa-chart-bar"></i>
+                Dashboard
+            </button>
+            {% endif %}
+            {% if user_role == 'admin' %}
+            <button class="resale-tab" onclick="switchResaleTab('admin-panel')">
+                <i class="fas fa-cog"></i>
+                Admin Panel
+            </button>
+            {% endif %}
         </div>
+
+        <!-- Top Resellers Tab -->
+        <div id="top-resellers-tab" class="resale-content active">
+            <div class="best-resellers">
+                <h3 id="topResellersTitle">
+                    <i class="fas fa-trophy"></i>
+                    Top Resellers
+                </h3>
+                <div id="bestResellersList" class="top-resellers-scroll"></div>
+            </div>
+        </div>
+
+        <!-- All Resellers Tab -->
+        <div id="all-resellers-tab" class="resale-content">
+            <div class="reseller-list">
+                <h3>
+                    <i class="fas fa-users"></i>
+                    All Resellers
+                </h3>
+                <div id="resellersList"></div>
+            </div>
+        </div>
+
+        {% if user_role == 'reseller' %}
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="resale-content">
+            <div class="dashboard-stats">
+                <h3>
+                    <i class="fas fa-chart-bar"></i>
+                    Dashboard
+                </h3>
+                <div id="resellerStats" class="stats-grid"></div>
+            </div>
+
+            <div class="referral-management">
+                <h3>
+                    <i class="fas fa-code"></i>
+                    Referral Codes
+                </h3>
+                <button onclick="showCreateReferralModal()" class="resale-btn">
+                    <i class="fas fa-plus"></i>
+                    Create New Code
+                </button>
+                <div id="referralCodes" class="codes-list"></div>
+            </div>
+
+            <div class="referred-users">
+                <h3>
+                    <i class="fas fa-users"></i>
+                    Referred Users
+                </h3>
+                <div id="referredUsers" class="users-list"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user_role == 'admin' %}
+        <!-- Admin Panel Tab -->
+        <div id="admin-panel-tab" class="resale-content">
+            <div class="admin-resale-panel">
+                <div class="resale-tabs">
+                    <button class="resale-tab active" onclick="switchAdminTab('requests')">
+                        <i class="fas fa-user-check"></i>
+                        Reseller Requests
+                    </button>
+                    <button class="resale-tab" onclick="switchAdminTab('management')">
+                        <i class="fas fa-users-cog"></i>
+                        Manage Resellers
+                    </button>
+                    <button class="resale-tab" onclick="switchAdminTab('sales')">
+                        <i class="fas fa-chart-line"></i>
+                        Sales & Payouts
+                    </button>
+                </div>
+
+                <div id="admin-requests" class="admin-content active">
+                    <div id="resellerRequests"></div>
+                </div>
+
+                <div id="admin-management" class="admin-content">
+                    <div id="resellerManagement"></div>
+                </div>
+
+                <div id="admin-sales" class="admin-content">
+                    <div id="salesData"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="pricing-tiers">
             <h3>
@@ -88,71 +193,6 @@
                 </div>
                 {% endfor %}
             </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Reseller View -->
-    {% if user_role == 'reseller' %}
-    <div class="reseller-dashboard">
-        <div class="dashboard-stats">
-            <h3>
-                <i class="fas fa-chart-bar"></i>
-                Dashboard
-            </h3>
-            <div id="resellerStats" class="stats-grid"></div>
-        </div>
-
-        <div class="referral-management">
-            <h3>
-                <i class="fas fa-code"></i>
-                Referral Codes
-            </h3>
-            <button onclick="showCreateReferralModal()" class="resale-btn">
-                <i class="fas fa-plus"></i>
-                Create New Code
-            </button>
-            <div id="referralCodes" class="codes-list"></div>
-        </div>
-
-        <div class="referred-users">
-            <h3>
-                <i class="fas fa-users"></i>
-                Referred Users
-            </h3>
-            <div id="referredUsers" class="users-list"></div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Admin View (only for admin) -->
-    {% if user_role == 'admin' %}
-    <div class="admin-resale-panel">
-        <div class="resale-tabs">
-            <button class="resale-tab active" onclick="switchResaleTab('requests')">
-                <i class="fas fa-user-check"></i>
-                Reseller Requests
-            </button>
-            <button class="resale-tab" onclick="switchResaleTab('management')">
-                <i class="fas fa-users-cog"></i>
-                Manage Resellers
-            </button>
-            <button class="resale-tab" onclick="switchResaleTab('sales')">
-                <i class="fas fa-chart-line"></i>
-                Sales & Payouts
-            </button>
-        </div>
-
-        <div id="resale-requests" class="resale-content active">
-            <div id="resellerRequests"></div>
-        </div>
-
-        <div id="resale-management" class="resale-content">
-            <div id="resellerManagement"></div>
-        </div>
-
-        <div id="resale-sales" class="resale-content">
-            <div id="salesData"></div>
         </div>
     </div>
     {% endif %}
@@ -251,8 +291,10 @@ function loadResaleData() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            displayResellers(data.resellers);
-            displayBestResellers(data.resellers);
+            allResellers = data.resellers;
+            filteredResellers = [...allResellers];
+            displayResellers(filteredResellers);
+            displayBestResellers(filteredResellers);
         }
     });
 
@@ -349,28 +391,39 @@ function displayBestResellers(resellers) {
     }).join('');
 }
 
+let allResellers = [];
+let filteredResellers = [];
+
 function searchResellers() {
     const searchTerm = document.getElementById('resellerSearch').value.toLowerCase().trim();
-    const resellerItems = document.querySelectorAll('.reseller-item');
     
     if (!searchTerm) {
         // Show all resellers if search is empty
-        resellerItems.forEach(item => {
-            item.style.display = 'flex';
-        });
+        filteredResellers = [...allResellers];
+        document.getElementById('topResellersTitle').innerHTML = `
+            <i class="fas fa-trophy"></i>
+            Top Resellers
+        `;
+        displayBestResellers(filteredResellers);
+        displayResellers(filteredResellers);
         return;
     }
     
-    resellerItems.forEach(item => {
-        const username = item.dataset.username || '';
-        const statsText = item.querySelector('.reseller-stats').textContent.toLowerCase();
-        
-        if (username.includes(searchTerm) || statsText.includes(searchTerm)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
+    // Filter resellers based on search term
+    filteredResellers = allResellers.filter(reseller => {
+        const username = reseller.username.toLowerCase();
+        const sales = (reseller.sales || 0).toString();
+        return username.includes(searchTerm) || sales.includes(searchTerm);
     });
+    
+    // Update title to show search results
+    document.getElementById('topResellersTitle').innerHTML = `
+        <i class="fas fa-search"></i>
+        Search results for "${searchTerm}"
+    `;
+    
+    displayBestResellers(filteredResellers);
+    displayResellers(filteredResellers);
 }
 
 function openSocialMedia(username, platform) {
@@ -561,7 +614,18 @@ function switchResaleTab(tab) {
     contents.forEach(c => c.classList.remove('active'));
 
     document.querySelector(`[onclick="switchResaleTab('${tab}')"]`).classList.add('active');
-    document.getElementById('resale-' + tab).classList.add('active');
+    document.getElementById(tab + '-tab').classList.add('active');
+}
+
+function switchAdminTab(tab) {
+    const tabs = document.querySelectorAll('#admin-panel-tab .resale-tab');
+    const contents = document.querySelectorAll('.admin-content');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+
+    document.querySelector(`[onclick="switchAdminTab('${tab}')"]`).classList.add('active');
+    document.getElementById('admin-' + tab).classList.add('active');
 }
 
 function showModal(modalId) {
@@ -977,6 +1041,18 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--accent-secondary);
     font-size: 14px;
     font-weight: 500;
+}
+
+.admin-content {
+    display: none;
+}
+
+.admin-content.active {
+    display: block;
+}
+
+.admin-resale-panel .resale-tabs {
+    margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {
