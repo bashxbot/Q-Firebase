@@ -415,7 +415,7 @@ function addUser() {
     const tier = document.getElementById('newUserTier').value;
 
     if (!username || !password) {
-        showNotification('Username and password are required', 'error');
+        alert('Username and password are required');
         return;
     }
 
@@ -427,42 +427,38 @@ function addUser() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(data.message, 'success');
+            alert(data.message);
             closeModal('addUserModal');
             loadUsers();
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error);
         }
     });
 }
 
 function addReseller() {
     const username = document.getElementById('newResellerUsername').value.trim();
+    const password = document.getElementById('newResellerPassword').value.trim();
     const credits = document.getElementById('newResellerCredits').value;
 
-    if (!username) {
-        showNotification('Username is required', 'error');
+    if (!username || !password) {
+        alert('Username and password are required');
         return;
     }
 
-    const package = '$' + credits;
-    
-    fetch('/api/admin/add_reseller', {
+    fetch('/api/admin/resellers', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: username, package: package})
+        body: JSON.stringify({username, password, credits})
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(data.message, 'success');
+            alert(data.message);
             closeModal('addResellerModal');
             loadResellers();
-            // Clear form
-            document.getElementById('newResellerUsername').value = '';
-            document.getElementById('newResellerCredits').value = '25';
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error);
         }
     });
 }
@@ -472,9 +468,7 @@ function editUser(username) {
 }
 
 function deleteUser(username) {
-    // Create a simple confirmation dialog since we don't have access to the main page's custom dialog
-    const confirmed = confirm(`Are you sure you want to delete user ${username}?`);
-    if (confirmed) {
+    if (confirm(`Are you sure you want to delete user ${username}?`)) {
         fetch('/api/admin/users', {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
@@ -483,10 +477,10 @@ function deleteUser(username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification(data.message, 'success');
+                alert(data.message);
                 loadUsers();
             } else {
-                showNotification(data.error, 'error');
+                alert(data.error);
             }
         });
     }
@@ -513,7 +507,7 @@ function createReferral() {
     const tier = document.getElementById('referralTier').value;
 
     if (!code) {
-        showNotification('Referral code name is required', 'error');
+        alert('Referral code name is required');
         return;
     }
 
@@ -525,48 +519,13 @@ function createReferral() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(data.message, 'success');
+            alert(data.message);
             closeModal('createReferralModal');
             loadReferrals();
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error);
         }
     });
-}
-
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-        ${message}
-    `;
-
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        padding: 16px 20px;
-        color: var(--${type === 'success' ? 'accent-primary' : 'accent-tertiary'});
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        font-family: 'JetBrains Mono', monospace;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => document.body.removeChild(notification), 300);
-    }, 3000);
 }
 
 function editReferral(code) {
