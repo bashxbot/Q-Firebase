@@ -1,0 +1,131 @@
+🚀 Resale System – Spec & Features
+🎯 Purpose:
+Enable users (or admins) to generate and sell their own referral links/codes, earning a commission whenever someone signs up and subscribes using their code.
+
+This feature is accessible via a new “Enter Resale System” panel in the sidebar.
+
+🧭 Sidebar:
+New Enter Resale System menu item with icon.
+
+Opens a dedicated panel with role-based content:
+
+👤 User view
+
+📈 Reseller view
+
+🛡️ Admin view
+
+🪄 Core Features:
+👤 For Users:
+✅ Option to Become a Reseller:
+
+Show privileges (earn commissions, track sales, custom referral links).
+
+Show tasks & guidelines for resellers.
+
+Button: “Request Reseller Access” (triggers admin approval).
+
+✅ Chat with Resellers:
+
+List of current resellers with their:
+
+Name
+
+Platforms (Telegram, Discord, WhatsApp, etc.)
+
+Platform icons (with links)
+
+Direct chat inside the Resale System (“Message” button to open a chat window).
+
+✅ See available subscription tiers and any discounted rates (if referral applied).
+
+📈 For Resellers:
+✅ Everything Users see, except “Become a Reseller”.
+
+✅ Reseller Dashboard:
+
+Stats:
+
+👥 Users referred
+
+💰 Earnings (pending & paid)
+
+💳 Current commission rate(editable by the reseller)
+
+✅ Manage Referral Codes:
+
+Create referral codes
+
+Optional settings: Expiry, usage limit, associated tier.
+
+View list of active & expired codes.
+
+✅ Track Referrals:
+
+List of referred users with details:
+
+Username
+
+Subscription tier
+
+Start date / duration
+
+Status (active, expired)
+
+✅ Chat with Users:
+
+Answer direct messages from interested users.
+
+🛡️ For Admin:
+✅ Everything Resellers see, plus:
+
+✅ Manage Resellers:
+
+Resellers work on given amount of credits. admin can add or deduct credits from a reseller. costing of subscription based on days. only the admin can enter manual subscription validity.
+
+Approve/deny new reseller requests.
+
+Add reseller manually.
+
+Block/suspend reseller accounts.
+
+Adjust commission rates (global & per-reseller).
+
+✅ Sales & Payouts:
+
+View total sales, commissions & payouts (all resellers).
+
+Mark commissions as paid.
+
+✅ Adjustments:
+
+Edit/delete referral codes.
+
+Adjust a reseller’s earnings manually.
+
+✅ Chat with Anyone:
+
+Message any reseller or user directly.
+
+Defualt Pricelist -
+🔷 silver Tier
+Duration	User Price	Reseller Price
+30 days	$3	$2.50
+90 days	$7	$6
+180 days	$12	$10
+365 days	$20	$17
+
+🔷 Gold Tier
+Duration	User Price	Reseller Price
+30 days	$6	$5
+90 days	$15	$12
+180 days	$25	$21
+365 days	$45	$38
+
+🔷 Elite Tier
+Duration	User Price	Reseller Price
+30 days	$10	$8
+90 days	$25	$21
+180 days	$45	$38
+365 days	$80	$70
+
