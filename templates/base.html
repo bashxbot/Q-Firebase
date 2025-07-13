@@ -1197,34 +1197,10 @@
 
         <!-- Admin Panel Section -->
         <div class="sidebar-section" id="adminSection" style="display: none;">
-            <h4 class="sidebar-section-title">
-                <i class="fas fa-crown"></i>
-                Admin Panel
-            </h4>
             <ul class="sidebar-nav">
                 <li><a href="/admin">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Dashboard
-                </a></li>
-                <li><a href="#" onclick="openAdminFunction('users')">
-                    <i class="fas fa-users"></i>
-                    User Management
-                </a></li>
-                <li><a href="#" onclick="openAdminFunction('resellers')">
-                    <i class="fas fa-store"></i>
-                    Reseller Management
-                </a></li>
-                <li><a href="#" onclick="openAdminFunction('referrals')">
-                    <i class="fas fa-gift"></i>
-                    Referral Codes
-                </a></li>
-                <li><a href="#" onclick="openAdminFunction('notifications')">
-                    <i class="fas fa-broadcast-tower"></i>
-                    Send Notifications
-                </a></li>
-                <li><a href="#" onclick="openAdminFunction('analytics')">
-                    <i class="fas fa-chart-line"></i>
-                    Analytics
+                    <i class="fas fa-crown"></i>
+                    Admin Panel
                 </a></li>
             </ul>
         </div>
@@ -1513,6 +1489,28 @@
                 const isAdmin = document.body.dataset.isAdmin === 'true';
                 adminSection.style.display = isAdmin ? 'block' : 'none';
             }
+        }
+
+        // Custom Dialog Functions
+        function showCustomAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            showModal('customAlert');
+        }
+
+        function showCustomConfirm(title, message, callback) {
+            document.getElementById('dialogTitle').textContent = title;
+            document.getElementById('dialogMessage').textContent = message;
+            window.confirmCallback = callback;
+            showModal('customDialog');
+        }
+
+        function handleDialogConfirm() {
+            if (window.confirmCallback) {
+                window.confirmCallback();
+                window.confirmCallback = null;
+            }
+            closeModal('customDialog');
         }
 
         document.addEventListener('DOMContentLoaded', function() {

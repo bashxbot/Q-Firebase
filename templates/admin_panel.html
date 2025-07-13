@@ -83,6 +83,7 @@
                             <th>Username</th>
                             <th>Credits</th>
                             <th>Status</th>
+                            <th>Sales</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -127,13 +128,18 @@
      <!-- Notifications Tab -->
     <div id="notifications-tab" class="admin-tab-content">
         <div class="admin-section">
-            <h3>
-                <i class="fas fa-bell"></i>
-                Notifications
-            </h3>
-            <div class="notifications-list">
-                <!-- Placeholder for notifications -->
-                <p>No new notifications.</p>
+            <div class="section-header">
+                <h3>
+                    <i class="fas fa-broadcast-tower"></i>
+                    Broadcast Notifications
+                </h3>
+                <button onclick="showBroadcastModal()" class="admin-btn">
+                    <i class="fas fa-plus"></i>
+                    Send Broadcast
+                </button>
+            </div>
+            <div class="broadcast-form">
+                <p>Send notifications to all users using the broadcast feature.</p>
             </div>
         </div>
     </div>
@@ -217,16 +223,12 @@
             <input type="text" id="newResellerUsername" placeholder="Enter username...">
         </div>
         <div class="form-group">
-            <label>Password:</label>
-            <input type="password" id="newResellerPassword" placeholder="Enter password...">
-        </div>
-        <div class="form-group">
-            <label>Credits:</label>
+            <label>Credits Package:</label>
             <select id="newResellerCredits">
-                <option value="25">$25</option>
-                <option value="50">$50</option>
-                <option value="100">$100</option>
-                <option value="200">$200</option>
+                <option value="25">$25 Package</option>
+                <option value="50">$50 Package</option>
+                <option value="100">$100 Package</option>
+                <option value="200">$200 Package</option>
             </select>
         </div>
         <div class="modal-actions">
@@ -270,6 +272,60 @@
                 Create
             </button>
             <button onclick="closeModal('createReferralModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="broadcastModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-broadcast-tower"></i>
+            Send Broadcast Notification
+        </h3>
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="broadcastTitle" placeholder="Enter notification title...">
+        </div>
+        <div class="form-group">
+            <label>Message:</label>
+            <textarea id="broadcastMessage" placeholder="Enter notification message..." rows="4"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button onclick="sendBroadcast()">
+                <i class="fas fa-paper-plane"></i>
+                Send Broadcast
+            </button>
+            <button onclick="closeModal('broadcastModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="rechargeModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-coins"></i>
+            Recharge Credits
+        </h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="rechargeUsername" placeholder="Enter username..." readonly>
+        </div>
+        <div class="form-group">
+            <label>Credits Amount:</label>
+            <input type="number" id="rechargeAmount" placeholder="Enter amount..." min="1">
+        </div>
+        <div class="modal-actions">
+            <button onclick="processRecharge()">
+                <i class="fas fa-plus"></i>
+                Add Credits
+            </button>
+            <button onclick="closeModal('rechargeModal')" class="btn-secondary">
                 <i class="fas fa-times"></i>
                 Cancel
             </button>
@@ -343,9 +399,13 @@ function displayResellers(resellers) {
     tbody.innerHTML = resellers.map(reseller => `
         <tr>
             <td>${reseller.username}</td>
-            <td>${reseller.credits}</td>
+            <td>${reseller.credits || 0}</td>
             <td><span class="status-badge ${reseller.status}">${reseller.status}</span></td>
+            <td>${reseller.sales || 0}</td>
             <td>
+                <button onclick="showRechargeModal('${reseller.username}')" class="btn-sm btn-secondary">
+                    <i class="fas fa-coins"></i>
+                </button>
                 <button onclick="editReseller('${reseller.username}')" class="btn-sm btn-secondary">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -415,7 +475,7 @@ function addUser() {
     const tier = document.getElementById('newUserTier').value;
 
     if (!username || !password) {
-        alert('Username and password are required');
+        showCustomAlert('Error', 'Username and password are required');
         return;
     }
 
@@ -427,38 +487,40 @@ function addUser() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showCustomAlert('Success', data.message);
             closeModal('addUserModal');
             loadUsers();
         } else {
-            alert(data.error);
+            showCustomAlert('Error', data.error);
         }
     });
 }
 
 function addReseller() {
     const username = document.getElementById('newResellerUsername').value.trim();
-    const password = document.getElementById('newResellerPassword').value.trim();
-    const credits = document.getElementById('newResellerCredits').value;
+    const package = '$' + document.getElementById('newResellerCredits').value;
 
-    if (!username || !password) {
-        alert('Username and password are required');
+    if (!username) {
+        showCustomAlert('Error', 'Username is required');
         return;
     }
 
     fetch('/api/admin/resellers', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, password, credits})
+        body: JSON.stringify({username, package, commission_rate: 10})
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showCustomAlert('Success', data.message);
             closeModal('addResellerModal');
             loadResellers();
+            // Clear form
+            document.getElementById('newResellerUsername').value = '';
+            document.getElementById('newResellerCredits').value = '25';
         } else {
-            alert(data.error);
+            showCustomAlert('Error', data.error);
         }
     });
 }
@@ -468,7 +530,7 @@ function editUser(username) {
 }
 
 function deleteUser(username) {
-    if (confirm(`Are you sure you want to delete user ${username}?`)) {
+    showCustomConfirm('Confirm Delete', `Are you sure you want to delete user ${username}?`, () => {
         fetch('/api/admin/users', {
             method: 'DELETE',
             headers: {'Content-Type': 'application/json'},
@@ -477,24 +539,23 @@ function deleteUser(username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                showCustomAlert('Success', data.message);
                 loadUsers();
             } else {
-                alert(data.error);
+                showCustomAlert('Error', data.error);
             }
         });
-    }
+    });
 }
 
 function editReseller(username) {
-    alert(`Edit reseller functionality for ${username} coming soon!`);
+    showCustomAlert('Info', `Edit reseller functionality for ${username} coming soon!`);
 }
 
 function deleteReseller(username) {
-    if (confirm(`Are you sure you want to delete reseller ${username}?`)) {
-        // Implement delete reseller functionality here
-        alert('Delete reseller functionality coming soon!');
-    }
+    showCustomConfirm('Confirm Delete', `Are you sure you want to delete reseller ${username}?`, () => {
+        showCustomAlert('Info', 'Delete reseller functionality coming soon!');
+    });
 }
 
 function showCreateReferralModal() {
@@ -507,7 +568,7 @@ function createReferral() {
     const tier = document.getElementById('referralTier').value;
 
     if (!code) {
-        alert('Referral code name is required');
+        showCustomAlert('Error', 'Referral code name is required');
         return;
     }
 
@@ -519,13 +580,98 @@ function createReferral() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            showCustomAlert('Success', data.message);
             closeModal('createReferralModal');
             loadReferrals();
         } else {
-            alert(data.error);
+            showCustomAlert('Error', data.error);
         }
     });
+}
+
+function showBroadcastModal() {
+    showModal('broadcastModal');
+}
+
+function sendBroadcast() {
+    const title = document.getElementById('broadcastTitle').value.trim();
+    const message = document.getElementById('broadcastMessage').value.trim();
+
+    if (!title || !message) {
+        showCustomAlert('Error', 'Title and message are required');
+        return;
+    }
+
+    fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title, message})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCustomAlert('Success', data.message);
+            closeModal('broadcastModal');
+            // Clear form
+            document.getElementById('broadcastTitle').value = '';
+            document.getElementById('broadcastMessage').value = '';
+        } else {
+            showCustomAlert('Error', data.error);
+        }
+    });
+}
+
+function showRechargeModal(username) {
+    document.getElementById('rechargeUsername').value = username;
+    document.getElementById('rechargeAmount').value = '';
+    showModal('rechargeModal');
+}
+
+function processRecharge() {
+    const username = document.getElementById('rechargeUsername').value.trim();
+    const amount = parseInt(document.getElementById('rechargeAmount').value);
+
+    if (!username || !amount || amount <= 0) {
+        showCustomAlert('Error', 'Valid username and positive amount required');
+        return;
+    }
+
+    fetch('/api/admin/recharge', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, amount})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCustomAlert('Success', data.message);
+            closeModal('rechargeModal');
+            loadResellers();
+        } else {
+            showCustomAlert('Error', data.error);
+        }
+    });
+}
+
+function showCustomAlert(title, message) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    showModal('customAlert');
+}
+
+function showCustomConfirm(title, message, callback) {
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMessage').textContent = message;
+    window.confirmCallback = callback;
+    showModal('customDialog');
+}
+
+function handleDialogConfirm() {
+    if (window.confirmCallback) {
+        window.confirmCallback();
+        window.confirmCallback = null;
+    }
+    closeModal('customDialog');
 }
 
 function editReferral(code) {
@@ -787,4 +933,35 @@ th {
     }
 }
 </style>
+
+<!-- Custom Dialog -->
+<div id="customDialog" class="modal">
+    <div class="modal-content custom-dialog">
+        <div class="dialog-header">
+            <h3 id="dialogTitle">Confirm</h3>
+        </div>
+        <div class="dialog-content">
+            <p id="dialogMessage">Are you sure?</p>
+        </div>
+        <div class="dialog-actions">
+            <button id="dialogConfirm" onclick="handleDialogConfirm()">Confirm</button>
+            <button id="dialogCancel" onclick="closeModal('customDialog')" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Alert -->
+<div id="customAlert" class="modal">
+    <div class="modal-content custom-alert">
+        <div class="alert-header">
+            <h3 id="alertTitle">Notice</h3>
+        </div>
+        <div class="alert-content">
+            <p id="alertMessage">Message</p>
+        </div>
+        <div class="alert-actions">
+            <button onclick="closeModal('customAlert')">OK</button>
+        </div>
+    </div>
+</div>
 {% endblock %}

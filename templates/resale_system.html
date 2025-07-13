@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -270,12 +269,12 @@ function displayResellers(resellers) {
     container.innerHTML = sortedResellers.map(reseller => {
         const sales = reseller.sales || 0;
         let rankName = 'Rookie';
-        
+
         if (sales >= 100) rankName = 'Elite';
         else if (sales >= 50) rankName = 'Expert';
         else if (sales >= 25) rankName = 'Pro';
         else if (sales >= 10) rankName = 'Advanced';
-        
+
         return `
             <div class="reseller-item" data-username="${reseller.username.toLowerCase()}">
                 <div class="reseller-info">
@@ -318,12 +317,12 @@ function displayBestResellers(resellers) {
     container.innerHTML = topResellers.map((reseller, index) => {
         let rankName = 'Rookie';
         const sales = reseller.sales || 0;
-        
+
         if (sales >= 100) rankName = 'Elite';
         else if (sales >= 50) rankName = 'Expert';
         else if (sales >= 25) rankName = 'Pro';
         else if (sales >= 10) rankName = 'Advanced';
-        
+
         return `
             <div class="best-reseller-item">
                 <div class="rank-badge">#${index + 1}</div>
@@ -346,7 +345,7 @@ let filteredResellers = [];
 
 function searchResellers() {
     const searchTerm = document.getElementById('resellerSearch').value.toLowerCase().trim();
-    
+
     if (!searchTerm) {
         // Show all resellers if search is empty
         filteredResellers = [...allResellers];
@@ -358,20 +357,20 @@ function searchResellers() {
         displayResellers(filteredResellers);
         return;
     }
-    
+
     // Filter resellers based on search term
     filteredResellers = allResellers.filter(reseller => {
         const username = reseller.username.toLowerCase();
         const sales = (reseller.sales || 0).toString();
         return username.includes(searchTerm) || sales.includes(searchTerm);
     });
-    
+
     // Update title to show search results
     document.getElementById('topResellersTitle').innerHTML = `
         <i class="fas fa-search"></i>
         Search results for "${searchTerm}"
     `;
-    
+
     displayBestResellers(filteredResellers);
     displayResellers(filteredResellers);
 }

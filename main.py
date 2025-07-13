@@ -1202,6 +1202,76 @@ def admin_users():
         
         return jsonify({'success': True, 'message': f'User {username} deleted successfully'})
 
+@app.route('/api/admin/resellers', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def admin_resellers():
+    if 'user_tier' not in session or not session.get('is_admin', False):
+        return jsonify({'success': False, 'error': 'Admin access required'})
+    
+    if request.method == 'GET':
+        return jsonify({'success': True, 'resellers': ADMIN_DATA['resellers']})
+    
+    elif request.method == 'POST':
+        username = request.json.get('username', '').strip()
+        package = request.json.get('package', '$25')
+        commission_rate = request.json.get('commission_rate', 10)
+
+        if not username:
+            return jsonify({'success': False, 'error': 'Username is required'})
+
+        # Check if user exists in credentials
+        if username not in CREDENTIALS:
+            return jsonify({'success': False, 'error': 'User not found in system'})
+
+        # Check if already a reseller
+        reseller_exists = any(r['username'] == username for r in ADMIN_DATA['resellers'])
+        if reseller_exists:
+            return jsonify({'success': False, 'error': 'User is already a reseller'})
+
+        # Get package details
+        package_info = ADMIN_DATA['reseller_packages'].get(package, {'credits': 25, 'price': 25})
+
+        # Add as reseller
+        new_reseller = {
+            "username": username,
+            "status": "approved",
+            "commission_rate": commission_rate,
+            "credits": package_info['credits'],
+            "earnings": {"pending": 0.0, "paid": 0.0},
+            "platforms": [],
+            "sales": 0,
+            "approved_date": datetime.now().isoformat(),
+            "package": package
+        }
+        
+        ADMIN_DATA['resellers'].append(new_reseller)
+
+        # Update user role in admin data if exists
+        for user in ADMIN_DATA['users']:
+            if user['username'] == username:
+                user['role'] = 'reseller'
+                break
+        else:
+            # Add user to admin data if not exists
+            ADMIN_DATA['users'].append({
+                "username": username,
+                "tier": CREDENTIALS[username]['tier'],
+                "status": "active",
+                "email": f"{username}@demo.com",
+                "role": "reseller",
+                "credits": package_info['credits']
+            })
+
+        # Create notification for user
+        create_notification(
+            username,
+            "Reseller Access Granted",
+            f"You have been granted reseller access with {package_info['credits']} credits and {commission_rate}% commission rate",
+            "system",
+            {"package": package, "credits": package_info['credits'], "commission_rate": commission_rate}
+        )
+
+        return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
+
 @app.route('/api/admin/referrals', methods=['GET', 'POST'])
 def admin_referrals():
     if 'user_tier' not in session or not session.get('is_admin', False):
@@ -1232,6 +1302,57 @@ def admin_referrals():
         })
         
         return jsonify({'success': True, 'message': f'Referral code {code} created successfully'})
+
+@app.route('/api/admin/broadcast', methods=['POST'])
+def admin_broadcast():
+    if 'user_tier' not in session or not session.get('is_admin', False):
+        return jsonify({'success': False, 'error': 'Admin access required'})
+    
+    title = request.json.get('title', '').strip()
+    message = request.json.get('message', '').strip()
+    
+    if not title or not message:
+        return jsonify({'success': False, 'error': 'Title and message are required'})
+    
+    # Create notification for all users
+    create_notification(
+        "all",
+        title,
+        message,
+        "broadcast",
+        {"sender": "admin"}
+    )
+    
+    return jsonify({'success': True, 'message': 'Broadcast notification sent successfully'})
+
+@app.route('/api/admin/recharge', methods=['POST'])
+def admin_recharge():
+    if 'user_tier' not in session or not session.get('is_admin', False):
+        return jsonify({'success': False, 'error': 'Admin access required'})
+    
+    username = request.json.get('username', '').strip()
+    amount = request.json.get('amount', 0)
+    
+    if not username or amount <= 0:
+        return jsonify({'success': False, 'error': 'Valid username and positive amount required'})
+    
+    # Find and update reseller credits
+    for reseller in ADMIN_DATA['resellers']:
+        if reseller['username'] == username:
+            reseller['credits'] += amount
+            
+            # Create notification for reseller
+            create_notification(
+                username,
+                "Credits Recharged",
+                f"Your account has been recharged with {amount} credits by admin",
+                "system",
+                {"amount": amount, "new_balance": reseller['credits']}
+            )
+            
+            return jsonify({'success': True, 'message': f'Added {amount} credits to {username}. New balance: {reseller["credits"]}'})
+    
+    return jsonify({'success': False, 'error': 'Reseller not found'})
 
 @app.route('/api/profile', methods=['GET', 'PUT'])
 def user_profile():
