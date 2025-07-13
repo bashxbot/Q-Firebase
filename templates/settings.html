@@ -1,7 +1,4 @@
-
 {% extends "base.html" %}
-
-{% block title %}Settings - Firebase RTDB Editor{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -10,10 +7,6 @@
             <i class="fas fa-cog"></i>
             Settings
         </h2>
-        <button onclick="goBack()" class="btn-secondary">
-            <i class="fas fa-arrow-left"></i>
-            Back to Firebase Editor
-        </button>
     </div>
 
     <div class="settings-content">
@@ -43,7 +36,7 @@
         <!-- Appearance Tab -->
         <div id="appearance-tab" class="settings-tab-content active">
             <div class="setting-group">
-                <h3>Theme & Colors</h3>
+                <h3>Visual Appearance</h3>
                 <div class="setting-item">
                     <label>Theme</label>
                     <select id="themeSelect">
@@ -53,17 +46,16 @@
                         <option value="purple">Purple Haze</option>
                         <option value="sunset">Sunset Orange</option>
                     </select>
-                    <small>Choose your preferred color theme</small>
+                    <small>Choose your preferred color scheme</small>
                 </div>
                 <div class="setting-item">
                     <label>Font Size</label>
                     <select id="fontSizeSelect">
-                        <option value="small">Small (12px)</option>
-                        <option value="medium" selected>Medium (14px)</option>
-                        <option value="large">Large (16px)</option>
-                        <option value="extra-large">Extra Large (18px)</option>
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
                     </select>
-                    <small>Adjust the base font size</small>
+                    <small>Adjust text size for better readability</small>
                 </div>
                 <div class="setting-item">
                     <label>Animation Speed</label>
@@ -98,14 +90,14 @@
                     <small>Enable blur and transparency effects</small>
                 </div>
                 <div class="setting-item">
-                    <label>Neon Glow Effects</label>
+                    <label>Neon Glow</label>
                     <input type="checkbox" id="neonGlow" checked>
-                    <small>Enable glowing effects on buttons and borders</small>
+                    <small>Enable glowing effects on elements</small>
                 </div>
                 <div class="setting-item">
                     <label>Particle Background</label>
                     <input type="checkbox" id="particleBackground">
-                    <small>Add animated particles to background</small>
+                    <small>Animated background particles</small>
                 </div>
             </div>
         </div>
@@ -113,16 +105,16 @@
         <!-- Editor Tab -->
         <div id="editor-tab" class="settings-tab-content">
             <div class="setting-group">
-                <h3>Code Editor</h3>
+                <h3>Editor Preferences</h3>
                 <div class="setting-item">
                     <label>Auto-save</label>
                     <input type="checkbox" id="autoSave" checked>
-                    <small>Automatically save changes every 30 seconds</small>
+                    <small>Automatically save changes as you type</small>
                 </div>
                 <div class="setting-item">
                     <label>Syntax Highlighting</label>
                     <input type="checkbox" id="syntaxHighlight" checked>
-                    <small>Enable JSON syntax highlighting</small>
+                    <small>Color-code JSON syntax</small>
                 </div>
                 <div class="setting-item">
                     <label>Line Numbers</label>
@@ -132,12 +124,12 @@
                 <div class="setting-item">
                     <label>Word Wrap</label>
                     <input type="checkbox" id="wordWrap">
-                    <small>Wrap long lines in editor</small>
+                    <small>Wrap long lines of text</small>
                 </div>
                 <div class="setting-item">
-                    <label>Auto-complete</label>
+                    <label>Auto Complete</label>
                     <input type="checkbox" id="autoComplete" checked>
-                    <small>Enable JSON auto-completion</small>
+                    <small>Enable code completion suggestions</small>
                 </div>
                 <div class="setting-item">
                     <label>Bracket Matching</label>
@@ -149,25 +141,23 @@
             <div class="setting-group">
                 <h3>Tree View</h3>
                 <div class="setting-item">
-                    <label>Auto-expand Depth</label>
-                    <select id="autoExpandDepth">
-                        <option value="0">No auto-expand</option>
-                        <option value="1">1 level</option>
-                        <option value="2" selected>2 levels</option>
-                        <option value="3">3 levels</option>
-                        <option value="all">All levels</option>
+                    <label>Auto Expand</label>
+                    <input type="checkbox" id="autoExpand">
+                    <small>Automatically expand tree nodes</small>
+                </div>
+                <div class="setting-item">
+                    <label>Smooth Animations</label>
+                    <input type="checkbox" id="smoothAnimations" checked>
+                    <small>Smooth expand/collapse animations</small>
+                </div>
+                <div class="setting-item">
+                    <label>Icon Type</label>
+                    <select id="iconType">
+                        <option value="modern" selected>Modern</option>
+                        <option value="classic">Classic</option>
+                        <option value="minimal">Minimal</option>
                     </select>
-                    <small>Automatically expand tree nodes to this depth</small>
-                </div>
-                <div class="setting-item">
-                    <label>Show Node Icons</label>
-                    <input type="checkbox" id="showNodeIcons" checked>
-                    <small>Display icons for different node types</small>
-                </div>
-                <div class="setting-item">
-                    <label>Highlight on Hover</label>
-                    <input type="checkbox" id="hoverHighlight" checked>
-                    <small>Highlight nodes when hovering</small>
+                    <small>Choose tree node icon style</small>
                 </div>
             </div>
         </div>
@@ -175,50 +165,45 @@
         <!-- Notifications Tab -->
         <div id="notifications-tab" class="settings-tab-content">
             <div class="setting-group">
-                <h3>Desktop Notifications</h3>
+                <h3>System Notifications</h3>
                 <div class="setting-item">
-                    <label>Enable Notifications</label>
+                    <label>Desktop Notifications</label>
                     <input type="checkbox" id="desktopNotifications">
-                    <small>Show desktop notifications for important events</small>
+                    <small>Show system notifications on desktop</small>
+                </div>
+                <div class="setting-item">
+                    <label>Sound Effects</label>
+                    <input type="checkbox" id="soundEffects" checked>
+                    <small>Play sounds for actions and alerts</small>
                 </div>
                 <div class="setting-item">
                     <label>Success Notifications</label>
                     <input type="checkbox" id="successNotifications" checked>
-                    <small>Notify when operations complete successfully</small>
+                    <small>Show notifications for successful operations</small>
                 </div>
                 <div class="setting-item">
                     <label>Error Notifications</label>
                     <input type="checkbox" id="errorNotifications" checked>
-                    <small>Notify when errors occur</small>
-                </div>
-                <div class="setting-item">
-                    <label>Chat Notifications</label>
-                    <input type="checkbox" id="chatNotifications" checked>
-                    <small>Notify when receiving new chat messages</small>
+                    <small>Show notifications for errors</small>
                 </div>
             </div>
 
             <div class="setting-group">
-                <h3>Sound Effects</h3>
+                <h3>Chat & Messaging</h3>
                 <div class="setting-item">
-                    <label>Enable Sound Effects</label>
-                    <input type="checkbox" id="soundEffects" checked>
-                    <small>Play sounds for user interactions</small>
+                    <label>Chat Notifications</label>
+                    <input type="checkbox" id="chatNotifications" checked>
+                    <small>Notify when receiving messages</small>
                 </div>
                 <div class="setting-item">
-                    <label>Volume Level</label>
-                    <input type="range" id="volumeLevel" min="0" max="100" value="50">
-                    <small>Adjust sound effect volume</small>
+                    <label>Message Sound</label>
+                    <input type="checkbox" id="messageSound" checked>
+                    <small>Play sound for new messages</small>
                 </div>
                 <div class="setting-item">
-                    <label>Notification Sound</label>
-                    <select id="notificationSound">
-                        <option value="beep">Beep</option>
-                        <option value="chime" selected>Chime</option>
-                        <option value="pop">Pop</option>
-                        <option value="whoosh">Whoosh</option>
-                    </select>
-                    <small>Choose notification sound</small>
+                    <label>Typing Indicators</label>
+                    <input type="checkbox" id="typingIndicators" checked>
+                    <small>Show when others are typing</small>
                 </div>
             </div>
         </div>
@@ -226,58 +211,59 @@
         <!-- Advanced Tab -->
         <div id="advanced-tab" class="settings-tab-content">
             <div class="setting-group">
-                <h3>Performance</h3>
+                <h3>Development</h3>
                 <div class="setting-item">
                     <label>Debug Mode</label>
                     <input type="checkbox" id="debugMode">
-                    <small>Enable detailed logging and debug information</small>
+                    <small>Enable debug logging and tools</small>
                 </div>
                 <div class="setting-item">
                     <label>Developer Console</label>
                     <input type="checkbox" id="devConsole">
-                    <small>Show developer console panel</small>
+                    <small>Show developer console in interface</small>
                 </div>
                 <div class="setting-item">
                     <label>Experimental Features</label>
                     <input type="checkbox" id="experimentalFeatures">
-                    <small>Enable beta features (may be unstable)</small>
-                </div>
-                <div class="setting-item">
-                    <label>Cache Duration</label>
-                    <select id="cacheDuration">
-                        <option value="5">5 minutes</option>
-                        <option value="15" selected>15 minutes</option>
-                        <option value="30">30 minutes</option>
-                        <option value="60">1 hour</option>
-                    </select>
-                    <small>How long to cache Firebase data</small>
+                    <small>Enable beta and experimental features</small>
                 </div>
             </div>
 
             <div class="setting-group">
-                <h3>Keyboard Shortcuts</h3>
-                <div class="shortcut-list">
-                    <div class="shortcut-item">
-                        <span>Open Search</span>
-                        <kbd>Ctrl + K</kbd>
-                    </div>
-                    <div class="shortcut-item">
-                        <span>Save Changes</span>
-                        <kbd>Ctrl + S</kbd>
-                    </div>
-                    <div class="shortcut-item">
-                        <span>Toggle Sidebar</span>
-                        <kbd>Ctrl + \</kbd>
-                    </div>
-                    <div class="shortcut-item">
-                        <span>Refresh Data</span>
-                        <kbd>F5</kbd>
-                    </div>
+                <h3>Performance</h3>
+                <div class="setting-item">
+                    <label>Hardware Acceleration</label>
+                    <input type="checkbox" id="hardwareAcceleration" checked>
+                    <small>Use GPU for better performance</small>
                 </div>
                 <div class="setting-item">
-                    <label>Custom Shortcuts</label>
-                    <input type="checkbox" id="customShortcuts">
-                    <small>Enable custom keyboard shortcuts</small>
+                    <label>Memory Optimization</label>
+                    <input type="checkbox" id="memoryOptimization" checked>
+                    <small>Optimize memory usage for large datasets</small>
+                </div>
+                <div class="setting-item">
+                    <label>Lazy Loading</label>
+                    <input type="checkbox" id="lazyLoading" checked>
+                    <small>Load content as needed to improve performance</small>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Data & Privacy</h3>
+                <div class="setting-item">
+                    <label>Analytics</label>
+                    <input type="checkbox" id="analytics" checked>
+                    <small>Allow anonymous usage analytics</small>
+                </div>
+                <div class="setting-item">
+                    <label>Auto Backup</label>
+                    <input type="checkbox" id="autoBackup" checked>
+                    <small>Automatically backup your work</small>
+                </div>
+                <div class="setting-item">
+                    <label>Session Persistence</label>
+                    <input type="checkbox" id="sessionPersistence" checked>
+                    <small>Remember session across browser restarts</small>
                 </div>
             </div>
         </div>
@@ -364,12 +350,345 @@
     </div>
 </div>
 
+<script>
+function switchSettingsTab(tabName) {
+    document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.settings-tab-content').forEach(content => content.classList.remove('active'));
+
+    event.target.classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+}
+
+function applySettings() {
+    const settings = {
+        // Appearance
+        theme: document.getElementById('themeSelect').value,
+        fontSize: document.getElementById('fontSizeSelect').value,
+        animationSpeed: document.getElementById('animationSpeed').value,
+        sidebarPosition: document.getElementById('sidebarPosition').value,
+        compactMode: document.getElementById('compactMode').checked,
+        glassEffect: document.getElementById('glassEffect').checked,
+        neonGlow: document.getElementById('neonGlow').checked,
+        particleBackground: document.getElementById('particleBackground').checked,
+
+        // Editor
+        autoSave: document.getElementById('autoSave').checked,
+        syntaxHighlight: document.getElementById('syntaxHighlight').checked,
+        lineNumbers: document.getElementById('lineNumbers').checked,
+        wordWrap: document.getElementById('wordWrap').checked,
+        autoComplete: document.getElementById('autoComplete').checked,
+        bracketMatching: document.getElementById('bracketMatching').checked,
+        autoExpandDepth: document.getElementById('autoExpandDepth').value,
+        showNodeIcons: document.getElementById('showNodeIcons').checked,
+        hoverHighlight: document.getElementById('hoverHighlight').checked,
+        autoExpand: document.getElementById('autoExpand').checked,
+        smoothAnimations: document.getElementById('smoothAnimations').checked,
+        iconType: document.getElementById('iconType').value,
+
+        // Notifications
+        desktopNotifications: document.getElementById('desktopNotifications').checked,
+        soundEffects: document.getElementById('soundEffects').checked,
+        successNotifications: document.getElementById('successNotifications').checked,
+        errorNotifications: document.getElementById('errorNotifications').checked,
+        chatNotifications: document.getElementById('chatNotifications').checked,
+        messageSound: document.getElementById('messageSound').checked,
+        typingIndicators: document.getElementById('typingIndicators').checked,
+        chatNotifications: document.getElementById('chatNotifications').checked,
+
+        // Advanced
+        debugMode: document.getElementById('debugMode').checked,
+        devConsole: document.getElementById('devConsole').checked,
+        experimentalFeatures: document.getElementById('experimentalFeatures').checked,
+        cacheDuration: document.getElementById('cacheDuration').value,
+        customShortcuts: document.getElementById('customShortcuts').checked,
+        hardwareAcceleration: document.getElementById('hardwareAcceleration').checked,
+        memoryOptimization: document.getElementById('memoryOptimization').checked,
+        lazyLoading: document.getElementById('lazyLoading').checked,
+
+        // Privacy
+        allowAnalytics: document.getElementById('allowAnalytics').checked,
+        errorReporting: document.getElementById('errorReporting').checked,
+        sessionRecording: document.getElementById('sessionRecording').checked,
+        autoLogout: document.getElementById('autoLogout').value,
+        twoFactorAuth: document.getElementById('twoFactorAuth').checked,
+        loginNotifications: document.getElementById('loginNotifications').checked,
+        analytics: document.getElementById('analytics').checked,
+        autoBackup: document.getElementById('autoBackup').checked,
+        sessionPersistence: document.getElementById('sessionPersistence').checked
+    };
+
+    localStorage.setItem('userSettings', JSON.stringify(settings));
+
+    // Apply theme immediately
+    applyTheme(settings.theme);
+    
+    // Apply other settings
+    applyAppearanceSettings(settings);
+    applyEditorSettings(settings);
+    
+    // Send to server
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Settings applied successfully!', 'success');
+        } else {
+            showNotification('Failed to save settings to server', 'error');
+        }
+    });
+
+    // Show success message
+    showNotification('Settings applied successfully!', 'success');
+
+    // Apply theme change
+    fetch('/api/theme', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({theme: settings.theme})
+    });
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = theme;
+    }
+}
+
+function applyAppearanceSettings(settings) {
+    // Apply font size
+    document.documentElement.style.setProperty('--base-font-size', 
+        settings.fontSize === 'small' ? '12px' :
+        settings.fontSize === 'large' ? '16px' :
+        settings.fontSize === 'extra-large' ? '18px' : '14px'
+    );
+    
+    // Apply compact mode
+    if (settings.compactMode) {
+        document.body.classList.add('compact-mode');
+    } else {
+        document.body.classList.remove('compact-mode');
+    }
+    
+    // Apply visual effects
+    if (!settings.glassEffect) {
+        document.body.classList.add('no-glass');
+    } else {
+        document.body.classList.remove('no-glass');
+    }
+    
+    if (!settings.neonGlow) {
+        document.body.classList.add('no-glow');
+    } else {
+        document.body.classList.remove('no-glow');
+    }
+}
+
+function applyEditorSettings(settings) {
+    // These would be applied to the actual editor components
+    // For now, just show which settings are enabled
+    console.log('Editor settings applied:', {
+        autoSave: settings.autoSave,
+        syntaxHighlight: settings.syntaxHighlight,
+        lineNumbers: settings.lineNumbers,
+        wordWrap: settings.wordWrap
+    });
+}
+
+function resetSettings() {
+    if (confirm('Reset all settings to default values?')) {
+        localStorage.removeItem('userSettings');
+        location.reload();
+    }
+}
+
+function exportSettings() {
+    const settings = localStorage.getItem('userSettings') || '{}';
+    const blob = new Blob([settings], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'firebase-editor-settings.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showNotification('Settings exported successfully!', 'success');
+}
+
+function importSettings() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const settings = JSON.parse(e.target.result);
+                    localStorage.setItem('userSettings', JSON.stringify(settings));
+                    showNotification('Settings imported successfully! Page will reload.', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } catch (error) {
+                    showNotification('Invalid settings file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    input.click();
+}
+
+function exportUserData() {
+    const userData = {
+        settings: JSON.parse(localStorage.getItem('userSettings') || '{}'),
+        profile: {
+            username: '{{ session.get("username", "") }}',
+            tier: '{{ tier }}',
+            export_date: new Date().toISOString()
+        }
+    };
+    
+    const blob = new Blob([JSON.stringify(userData, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'user-data-export.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('User data exported successfully', 'success');
+}
+
+function clearUserData() {
+    if (confirm('Clear all local data? This will remove all saved settings and cached data.')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        showNotification('Local data cleared successfully', 'success');
+        
+        // Reset form
+        resetSettings();
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle' : 'info-circle'}"></i>
+        ${message}
+    `;
+
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: var(--${type === 'success' ? 'accent-primary' : 'accent-tertiary' : 'accent-secondary'}});
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+}
+
+function goBack() {
+    window.location.href = '/';
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved settings
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+
+        // Apply saved settings to form elements
+        Object.keys(settings).forEach(key => {
+            const element = document.getElementById(key + 'Select') || document.getElementById(key);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = settings[key];
+                } else {
+                    element.value = settings[key];
+                }
+            }
+        });
+
+        applyTheme(settings.theme || 'default');
+        applyAppearanceSettings(settings);
+        applyEditorSettings(settings);
+    }
+
+    // Enable desktop notifications if permission granted
+    if (Notification.permission === 'granted') {
+        document.getElementById('desktopNotifications').checked = true;
+    }
+    
+    // Request notification permission if not already granted
+    if ('Notification' in window && Notification.permission === 'default') {
+        document.getElementById('desktopNotifications').addEventListener('change', function() {
+            if (this.checked) {
+                Notification.requestPermission();
+            }
+        });
+    }
+});
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    .compact-mode {
+        --spacing-unit: 0.75rem;
+    }
+
+    .no-glass .glass-bg {
+        background: var(--bg-secondary) !important;
+        backdrop-filter: none !important;
+    }
+
+    .no-glow *:hover {
+        box-shadow: none !important;
+    }
+`;
+document.head.appendChild(style);
+</script>
+
 <style>
-/* Settings Styles */
 .settings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
     margin-bottom: 32px;
 }
 
@@ -440,13 +759,6 @@
 
 .setting-group {
     margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.setting-group:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
 }
 
 .setting-group h3 {
@@ -454,24 +766,22 @@
     color: var(--accent-primary);
     margin-bottom: 20px;
     font-size: 18px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-primary);
+    padding-bottom: 8px;
 }
 
 .setting-item {
     display: grid;
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: 1fr auto;
     gap: 16px;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-primary);
 }
 
-.setting-item:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-tertiary);
+.setting-item:last-child {
+    border-bottom: none;
 }
 
 .setting-item label {
@@ -482,58 +792,48 @@
 }
 
 .setting-item small {
-    grid-column: 2;
+    grid-column: 1;
     color: var(--fg-muted);
     font-size: 12px;
     margin-top: 4px;
 }
 
-.setting-item input,
-.setting-item select {
-    width: 100%;
-    max-width: 200px;
-}
-
 .setting-item input[type="checkbox"] {
-    width: auto;
-    max-width: none;
-    transform: scale(1.2);
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent-primary);
 }
 
-.setting-item input[type="range"] {
-    max-width: 150px;
+.setting-item select {
+    min-width: 150px;
 }
 
-.shortcut-list {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.shortcut-item {
+.settings-actions {
+    margin-top: 32px;
     display: flex;
-    justify-content: space-between;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.apply-settings-btn {
+    background: var(--gradient-primary);
+    color: var(--bg-primary);
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-primary);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
+    gap: 8px;
 }
 
-.shortcut-item:last-child {
-    border-bottom: none;
-}
-
-.shortcut-item kbd {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent-primary);
+.apply-settings-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-neon);
 }
 
 .data-actions {
@@ -565,34 +865,14 @@
     background: var(--gradient-secondary);
 }
 
-.settings-actions {
-    margin-top: 32px;
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding-top: 24px;
-    border-top: 1px solid var(--border-primary);
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.apply-settings-btn {
-    background: var(--gradient-primary);
-    color: var(--bg-primary);
-    border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.apply-settings-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-neon);
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
 }
 
 @media (max-width: 768px) {
@@ -618,374 +898,4 @@
     }
 }
 </style>
-
-<script>
-// Settings Functions
-function switchSettingsTab(tabName) {
-    // Remove active class from all tabs and content
-    document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.settings-tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Add active class to clicked tab and corresponding content
-    event.target.classList.add('active');
-    document.getElementById(tabName + '-tab').classList.add('active');
-}
-
-function applySettings() {
-    const settings = {
-        // Appearance
-        theme: document.getElementById('themeSelect').value,
-        fontSize: document.getElementById('fontSizeSelect').value,
-        animationSpeed: document.getElementById('animationSpeed').value,
-        sidebarPosition: document.getElementById('sidebarPosition').value,
-        compactMode: document.getElementById('compactMode').checked,
-        glassEffect: document.getElementById('glassEffect').checked,
-        neonGlow: document.getElementById('neonGlow').checked,
-        particleBackground: document.getElementById('particleBackground').checked,
-        
-        // Editor
-        autoSave: document.getElementById('autoSave').checked,
-        syntaxHighlight: document.getElementById('syntaxHighlight').checked,
-        lineNumbers: document.getElementById('lineNumbers').checked,
-        wordWrap: document.getElementById('wordWrap').checked,
-        autoComplete: document.getElementById('autoComplete').checked,
-        bracketMatching: document.getElementById('bracketMatching').checked,
-        autoExpandDepth: document.getElementById('autoExpandDepth').value,
-        showNodeIcons: document.getElementById('showNodeIcons').checked,
-        hoverHighlight: document.getElementById('hoverHighlight').checked,
-        
-        // Notifications
-        desktopNotifications: document.getElementById('desktopNotifications').checked,
-        successNotifications: document.getElementById('successNotifications').checked,
-        errorNotifications: document.getElementById('errorNotifications').checked,
-        chatNotifications: document.getElementById('chatNotifications').checked,
-        soundEffects: document.getElementById('soundEffects').checked,
-        volumeLevel: document.getElementById('volumeLevel').value,
-        notificationSound: document.getElementById('notificationSound').value,
-        
-        // Advanced
-        debugMode: document.getElementById('debugMode').checked,
-        devConsole: document.getElementById('devConsole').checked,
-        experimentalFeatures: document.getElementById('experimentalFeatures').checked,
-        cacheDuration: document.getElementById('cacheDuration').value,
-        customShortcuts: document.getElementById('customShortcuts').checked,
-        
-        // Privacy
-        allowAnalytics: document.getElementById('allowAnalytics').checked,
-        errorReporting: document.getElementById('errorReporting').checked,
-        sessionRecording: document.getElementById('sessionRecording').checked,
-        autoLogout: document.getElementById('autoLogout').value,
-        twoFactorAuth: document.getElementById('twoFactorAuth').checked,
-        loginNotifications: document.getElementById('loginNotifications').checked
-    };
-
-    // Save to localStorage
-    localStorage.setItem('userSettings', JSON.stringify(settings));
-    
-    // Apply theme immediately
-    applyTheme(settings.theme);
-    
-    // Apply other settings
-    applyAppearanceSettings(settings);
-    applyEditorSettings(settings);
-    
-    // Send to server
-    fetch('/api/settings', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(settings)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Settings applied successfully!', 'success');
-        } else {
-            showNotification('Failed to save settings to server', 'error');
-        }
-    });
-}
-
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
-        themeSelect.value = theme;
-    }
-}
-
-function applyAppearanceSettings(settings) {
-    // Apply font size
-    document.documentElement.style.setProperty('--base-font-size', 
-        settings.fontSize === 'small' ? '12px' :
-        settings.fontSize === 'large' ? '16px' :
-        settings.fontSize === 'extra-large' ? '18px' : '14px'
-    );
-    
-    // Apply compact mode
-    if (settings.compactMode) {
-        document.body.classList.add('compact-mode');
-    } else {
-        document.body.classList.remove('compact-mode');
-    }
-    
-    // Apply visual effects
-    if (!settings.glassEffect) {
-        document.body.classList.add('no-glass');
-    } else {
-        document.body.classList.remove('no-glass');
-    }
-    
-    if (!settings.neonGlow) {
-        document.body.classList.add('no-glow');
-    } else {
-        document.body.classList.remove('no-glow');
-    }
-}
-
-function applyEditorSettings(settings) {
-    // These would be applied to the actual editor components
-    // For now, just show which settings are enabled
-    console.log('Editor settings applied:', {
-        autoSave: settings.autoSave,
-        syntaxHighlight: settings.syntaxHighlight,
-        lineNumbers: settings.lineNumbers,
-        wordWrap: settings.wordWrap
-    });
-}
-
-function resetSettings() {
-    if (confirm('Reset all settings to default? This cannot be undone.')) {
-        localStorage.removeItem('userSettings');
-        
-        // Reset form to defaults
-        document.getElementById('themeSelect').value = 'default';
-        document.getElementById('fontSizeSelect').value = 'medium';
-        document.getElementById('animationSpeed').value = 'normal';
-        document.getElementById('sidebarPosition').value = 'left';
-        document.getElementById('compactMode').checked = false;
-        document.getElementById('glassEffect').checked = true;
-        document.getElementById('neonGlow').checked = true;
-        document.getElementById('particleBackground').checked = false;
-        
-        document.getElementById('autoSave').checked = true;
-        document.getElementById('syntaxHighlight').checked = true;
-        document.getElementById('lineNumbers').checked = true;
-        document.getElementById('wordWrap').checked = false;
-        document.getElementById('autoComplete').checked = true;
-        document.getElementById('bracketMatching').checked = true;
-        document.getElementById('autoExpandDepth').value = '2';
-        document.getElementById('showNodeIcons').checked = true;
-        document.getElementById('hoverHighlight').checked = true;
-        
-        document.getElementById('desktopNotifications').checked = false;
-        document.getElementById('successNotifications').checked = true;
-        document.getElementById('errorNotifications').checked = true;
-        document.getElementById('chatNotifications').checked = true;
-        document.getElementById('soundEffects').checked = true;
-        document.getElementById('volumeLevel').value = '50';
-        document.getElementById('notificationSound').value = 'chime';
-        
-        document.getElementById('debugMode').checked = false;
-        document.getElementById('devConsole').checked = false;
-        document.getElementById('experimentalFeatures').checked = false;
-        document.getElementById('cacheDuration').value = '15';
-        document.getElementById('customShortcuts').checked = false;
-        
-        document.getElementById('allowAnalytics').checked = true;
-        document.getElementById('errorReporting').checked = true;
-        document.getElementById('sessionRecording').checked = false;
-        document.getElementById('autoLogout').value = '60';
-        document.getElementById('twoFactorAuth').checked = false;
-        document.getElementById('loginNotifications').checked = true;
-        
-        applyTheme('default');
-        showNotification('Settings reset to default', 'success');
-    }
-}
-
-function exportSettings() {
-    const settings = localStorage.getItem('userSettings') || '{}';
-    const blob = new Blob([settings], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'firebase-editor-settings.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showNotification('Settings exported successfully', 'success');
-}
-
-function importSettings() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const settings = JSON.parse(e.target.result);
-                    localStorage.setItem('userSettings', JSON.stringify(settings));
-                    loadSettings();
-                    showNotification('Settings imported successfully', 'success');
-                } catch (error) {
-                    showNotification('Invalid settings file', 'error');
-                }
-            };
-            reader.readAsText(file);
-        }
-    };
-    input.click();
-}
-
-function exportUserData() {
-    const userData = {
-        settings: JSON.parse(localStorage.getItem('userSettings') || '{}'),
-        profile: {
-            username: '{{ session.get("username", "") }}',
-            tier: '{{ tier }}',
-            export_date: new Date().toISOString()
-        }
-    };
-    
-    const blob = new Blob([JSON.stringify(userData, null, 2)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'user-data-export.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showNotification('User data exported successfully', 'success');
-}
-
-function clearUserData() {
-    if (confirm('Clear all local data? This will remove all saved settings and cached data.')) {
-        localStorage.clear();
-        sessionStorage.clear();
-        showNotification('Local data cleared successfully', 'success');
-        
-        // Reset form
-        resetSettings();
-    }
-}
-
-function loadSettings() {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        
-        // Apply saved settings to form elements
-        Object.keys(settings).forEach(key => {
-            const element = document.getElementById(key + 'Select') || document.getElementById(key);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = settings[key];
-                } else {
-                    element.value = settings[key];
-                }
-            }
-        });
-        
-        applyTheme(settings.theme || 'default');
-        applyAppearanceSettings(settings);
-        applyEditorSettings(settings);
-    }
-}
-
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
-        ${message}
-    `;
-    
-    // Add styles
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 8px;
-        padding: 16px 20px;
-        color: var(--${type === 'success' ? 'accent-primary' : type === 'error' ? 'accent-tertiary' : 'accent-secondary'});
-        box-shadow: var(--shadow-card);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
-
-function goBack() {
-    window.location.href = '/';
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadSettings();
-    
-    // Request notification permission if not already granted
-    if ('Notification' in window && Notification.permission === 'default') {
-        document.getElementById('desktopNotifications').addEventListener('change', function() {
-            if (this.checked) {
-                Notification.requestPermission();
-            }
-        });
-    }
-});
-
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .compact-mode {
-        --spacing-unit: 0.75rem;
-    }
-    
-    .no-glass .glass-bg {
-        background: var(--bg-secondary) !important;
-        backdrop-filter: none !important;
-    }
-    
-    .no-glow *:hover {
-        box-shadow: none !important;
-    }
-`;
-document.head.appendChild(style);
-</script>
 {% endblock %}

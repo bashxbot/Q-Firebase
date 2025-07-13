@@ -21,25 +21,25 @@
 
     <nav>
         <ul class="sidebar-nav">
-            <li><a href="#" class="active" onclick="switchView('app')">
+            <li><a href="#" class="active">
                 <i class="fas fa-database"></i>
                 Firebase Editor
             </a></li>
-            <li><a href="#" onclick="switchView('resale')">
+            <li><a href="#" onclick="openResaleSystem()">
                 <i class="fas fa-store"></i>
                 Resale System
             </a></li>
-            <li><a href="#" onclick="switchView('profile')">
+            <li><a href="#" onclick="openProfile()">
                 <i class="fas fa-user-circle"></i>
                 Profile
             </a></li>
             {% if tier == 'Elite Edition' and session.get('is_admin') %}
-            <li><a href="#" onclick="switchView('admin')">
+            <li><a href="#" onclick="openAdminPanel()">
                 <i class="fas fa-crown"></i>
                 Admin Panel
             </a></li>
             {% endif %}
-            <li><a href="#" onclick="switchView('settings')">
+            <li><a href="#" onclick="openSettings()">
                 <i class="fas fa-cog"></i>
                 Settings
             </a></li>
@@ -62,451 +62,191 @@
 </div>
 
 <div class="content-wrapper">
-    <!-- App View (Default) -->
-    <div id="app-view" class="view-content active">
-        <div class="container">
-            <!-- Header -->
-            <div class="header">
-                <div class="edition-label">{{ tier }}</div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="edition-label">{{ tier }}</div>
 
-                <div class="url-section">
-                    <label>
-                        <i class="fas fa-database"></i>
-                        Firebase RTDB URL:
-                    </label>
-                    {% if tier == 'Elite Edition' %}
-                    <select id="urlProfile" style="width: 180px;">
-                        <option value="">Select Profile</option>
-                        {% for profile in url_profiles %}
-                        <option value="{{ profile }}">{{ profile }}</option>
-                        {% endfor %}
-                    </select>
-                    {% endif %}
-                    <input type="text" id="firebaseUrl" placeholder="https://your-project-id-default-rtdb.firebaseio.com" style="flex: 1; min-width: 250px;">
-                </div>
-
-                <div class="header-buttons">
-                    {% if tier == 'Elite Edition' %}
-                    <button onclick="showAddUrlModal()">
-                        <i class="fas fa-plus"></i>
-                        Add URL
-                    </button>
-                    <button onclick="removeUrlProfile()">
-                        <i class="fas fa-trash"></i>
-                        Remove
-                    </button>
-                    {% endif %}
-                    <button onclick="fetchData()" id="fetchBtn">
-                        <i class="fas fa-download"></i>
-                        Fetch
-                    </button>
-                    <button onclick="logout()" class="btn-danger">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </button>
-                </div>
-            </div>
-
-            <!-- Status -->
-            <div id="status" class="status info">
-                <i class="fas fa-info-circle"></i>
-                Ready to connect to Firebase
-            </div>
-
-            <!-- Path Navigator -->
-            <div class="path-navigator">
+            <div class="url-section">
                 <label>
-                    <i class="fas fa-map-marker-alt"></i>
-                    Navigate to Path:
+                    <i class="fas fa-database"></i>
+                    Firebase RTDB URL:
                 </label>
-                <input type="text" id="pathNavigator" placeholder="Enter path (e.g., users/user1/name)" 
-                       onkeypress="handlePathNavigation(event)">
-                <button onclick="navigateToPath()">
-                    <i class="fas fa-arrow-right"></i>
-                    Go
-                </button>
-            </div>
-
-            <!-- Search Section -->
-            <div class="search-section">
-                <label>
-                    <i class="fas fa-search"></i>
-                    Search:
-                </label>
-                <input type="text" id="searchTerm" placeholder="Enter search term..." style="width: 250px;">
-                <button onclick="searchData()">
-                    <i class="fas fa-search"></i>
-                    Find
-                </button>
-
-                {% if tier == 'Elite Edition' and has_validate %}
-                <div style="margin-left: auto; display: flex; gap: 8px;">
-                    <button onclick="loadSchema()">
-                        <i class="fas fa-file-code"></i>
-                        Schema
-                    </button>
-                    <button onclick="validateSchema()" {% if not has_schema %}disabled{% endif %}>
-                        <i class="fas fa-check-circle"></i>
-                        Validate
-                    </button>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Main Content - Side by Side Layout -->
-            <div class="main-content">
-                <!-- Tree Panel -->
-                <div class="tree-panel">
-                    <h3>
-                        <i class="fas fa-sitemap"></i>
-                        Data Tree
-                    </h3>
-                    <div class="tree-controls">
-                        <button onclick="expandAll()" class="btn-secondary">
-                            <i class="fas fa-expand-arrows-alt"></i>
-                            Expand
-                        </button>
-                        <button onclick="collapseAll()" class="btn-secondary">
-                            <i class="fas fa-compress-arrows-alt"></i>
-                            Collapse
-                        </button>
-                    </div>
-                    <div id="treeView"></div>
-                </div>
-
-                <!-- Editor Panel -->
-                <div class="editor-panel">
-                    <h3>
-                        <i class="fas fa-code"></i>
-                        Code Editor
-                    </h3>
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-map-marker-alt"></i>
-                            Selected Path:
-                        </label>
-                        <div id="selectedPath"></div>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>
-                            <i class="fas fa-brackets-curly"></i>
-                            JSON Value:
-                        </label>
-                        <textarea id="nodeValue" placeholder="Select a node to edit its value..." rows="15"></textarea>
-                    </div>
-
-                    {% if tier in ['Gold Edition', 'Elite Edition'] %}
-                    <div class="node-actions">
-                        <button onclick="updateNode()" id="updateBtn" disabled>
-                            <i class="fas fa-save"></i>
-                            Update
-                        </button>
-                        <button onclick="showAddChildModal()" id="addChildBtn" disabled>
-                            <i class="fas fa-plus"></i>
-                            Add Child
-                        </button>
-                        <button onclick="deleteNode()" id="deleteBtn" disabled>
-                            <i class="fas fa-trash"></i>
-                            Delete
-                        </button>
-                        <button onclick="showDuplicateModal()" id="duplicateBtn" disabled>
-                            <i class="fas fa-copy"></i>
-                            Duplicate
-                        </button>
-                        {% if tier == 'Elite Edition' %}
-                        <button onclick="showPushItemModal()" id="pushBtn" disabled>
-                            <i class="fas fa-upload"></i>
-                            Push
-                        </button>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Bottom Actions -->
-            <div class="bottom-actions">
                 {% if tier == 'Elite Edition' %}
-                <button onclick="saveData()">
+                <select id="urlProfile" style="width: 180px;">
+                    <option value="">Select Profile</option>
+                    {% for profile in url_profiles %}
+                    <option value="{{ profile }}">{{ profile }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                <input type="text" id="firebaseUrl" placeholder="https://your-project-id-default-rtdb.firebaseio.com" style="flex: 1; min-width: 250px;">
+            </div>
+
+            <div class="header-buttons">
+                {% if tier == 'Elite Edition' %}
+                <button onclick="showAddUrlModal()">
+                    <i class="fas fa-plus"></i>
+                    Add URL
+                </button>
+                <button onclick="removeUrlProfile()">
+                    <i class="fas fa-trash"></i>
+                    Remove
+                </button>
+                {% endif %}
+                <button onclick="fetchData()" id="fetchBtn">
                     <i class="fas fa-download"></i>
-                    Save
+                    Fetch
                 </button>
-                <button onclick="loadDataFromFile()">
-                    <i class="fas fa-upload"></i>
-                    Load
+                <button onclick="logout()" class="btn-danger">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
                 </button>
-                <button onclick="exportData()">
-                    <i class="fas fa-file-export"></i>
-                    Export
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="status info">
+            <i class="fas fa-info-circle"></i>
+            Ready to connect to Firebase
+        </div>
+
+        <!-- Path Navigator -->
+        <div class="path-navigator">
+            <label>
+                <i class="fas fa-map-marker-alt"></i>
+                Navigate to Path:
+            </label>
+            <input type="text" id="pathNavigator" placeholder="Enter path (e.g., users/user1/name)" 
+                   onkeypress="handlePathNavigation(event)">
+            <button onclick="navigateToPath()">
+                <i class="fas fa-arrow-right"></i>
+                Go
+            </button>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <label>
+                <i class="fas fa-search"></i>
+                Search:
+            </label>
+            <input type="text" id="searchTerm" placeholder="Enter search term..." style="width: 250px;">
+            <button onclick="searchData()">
+                <i class="fas fa-search"></i>
+                Find
+            </button>
+
+            {% if tier == 'Elite Edition' and has_validate %}
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button onclick="loadSchema()">
+                    <i class="fas fa-file-code"></i>
+                    Schema
                 </button>
-                {% endif %}
+                <button onclick="validateSchema()" {% if not has_schema %}disabled{% endif %}>
+                    <i class="fas fa-check-circle"></i>
+                    Validate
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content - Side by Side Layout -->
+        <div class="main-content">
+            <!-- Tree Panel -->
+            <div class="tree-panel">
+                <h3>
+                    <i class="fas fa-sitemap"></i>
+                    Data Tree
+                </h3>
+                <div class="tree-controls">
+                    <button onclick="expandAll()" class="btn-secondary">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                        Expand
+                    </button>
+                    <button onclick="collapseAll()" class="btn-secondary">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                        Collapse
+                    </button>
+                </div>
+                <div id="treeView"></div>
+            </div>
+
+            <!-- Editor Panel -->
+            <div class="editor-panel">
+                <h3>
+                    <i class="fas fa-code"></i>
+                    Code Editor
+                </h3>
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-map-marker-alt"></i>
+                        Selected Path:
+                    </label>
+                    <div id="selectedPath"></div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>
+                        <i class="fas fa-brackets-curly"></i>
+                        JSON Value:
+                    </label>
+                    <textarea id="nodeValue" placeholder="Select a node to edit its value..." rows="15"></textarea>
+                </div>
+
                 {% if tier in ['Gold Edition', 'Elite Edition'] %}
-                <button onclick="applyChanges()" id="applyBtn" disabled>
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    Apply Changes
-                </button>
+                <div class="node-actions">
+                    <button onclick="updateNode()" id="updateBtn" disabled>
+                        <i class="fas fa-save"></i>
+                        Update
+                    </button>
+                    <button onclick="showAddChildModal()" id="addChildBtn" disabled>
+                        <i class="fas fa-plus"></i>
+                        Add Child
+                    </button>
+                    <button onclick="deleteNode()" id="deleteBtn" disabled>
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </button>
+                    <button onclick="showDuplicateModal()" id="duplicateBtn" disabled>
+                        <i class="fas fa-copy"></i>
+                        Duplicate
+                    </button>
+                    {% if tier == 'Elite Edition' %}
+                    <button onclick="showPushItemModal()" id="pushBtn" disabled>
+                        <i class="fas fa-upload"></i>
+                        Push
+                    </button>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>
-    </div>
 
-    <!-- Resale System View -->
-    <div id="resale-view" class="view-content">
-        <div class="container">
-            <div class="resale-header">
-                <h2>
-                    <i class="fas fa-store"></i>
-                    Resale System
-                </h2>
-            </div>
-
-            <!-- User View -->
-            {% if user_role == 'user' %}
-            <div class="resale-content">
-                <div class="resale-card">
-                    <h3>
-                        <i class="fas fa-user-plus"></i>
-                        Become a Reseller
-                    </h3>
-                    <p>Join our reseller program and start earning commissions!</p>
-                    <div class="privileges">
-                        <h4>Reseller Privileges:</h4>
-                        <ul>
-                            <li><i class="fas fa-dollar-sign"></i> Earn commissions on every sale</li>
-                            <li><i class="fas fa-chart-line"></i> Track your sales and earnings</li>
-                            <li><i class="fas fa-link"></i> Create custom referral links</li>
-                            <li><i class="fas fa-users"></i> Build your own customer base</li>
-                        </ul>
-                    </div>
-                    <div class="guidelines">
-                        <h4>Guidelines:</h4>
-                        <ul>
-                            <li>Maintain professional communication</li>
-                            <li>Provide accurate product information</li>
-                            <li>Support your referred customers</li>
-                            <li>Follow platform terms of service</li>
-                        </ul>
-                    </div>
-                    <button onclick="showResellerRequestModal()" class="resale-btn">
-                        <i class="fas fa-hand-paper"></i>
-                        Request Reseller Access
-                    </button>
-                </div>
-
-                <div class="reseller-list">
-                    <h3>
-                        <i class="fas fa-users"></i>
-                        Chat with Resellers
-                    </h3>
-                    <div id="resellersList"></div>
-                </div>
-
-                <div class="pricing-tiers">
-                    <h3>
-                        <i class="fas fa-tags"></i>
-                        Subscription Tiers
-                    </h3>
-                    <div class="pricing-grid">
-                        {% for tier_name, prices in pricelist.items() %}
-                        <div class="tier-card {{ tier_name }}">
-                            <h4>{{ tier_name.title() }} Edition</h4>
-                            {% for duration, price_info in prices.items() %}
-                            <div class="price-row">
-                                <span>{{ duration }} days</span>
-                                <span class="price">${{ "%.2f"|format(price_info.user_price) }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+        <!-- Bottom Actions -->
+        <div class="bottom-actions">
+            {% if tier == 'Elite Edition' %}
+            <button onclick="saveData()">
+                <i class="fas fa-download"></i>
+                Save
+            </button>
+            <button onclick="loadDataFromFile()">
+                <i class="fas fa-upload"></i>
+                Load
+            </button>
+            <button onclick="exportData()">
+                <i class="fas fa-file-export"></i>
+                Export
+            </button>
             {% endif %}
-
-            <!-- Reseller View -->
-            {% if user_role == 'reseller' %}
-            <div class="reseller-dashboard">
-                <div class="dashboard-stats">
-                    <h3>
-                        <i class="fas fa-chart-bar"></i>
-                        Dashboard
-                    </h3>
-                    <div id="resellerStats" class="stats-grid"></div>
-                </div>
-
-                <div class="referral-management">
-                    <h3>
-                        <i class="fas fa-code"></i>
-                        Referral Codes
-                    </h3>
-                    <button onclick="showCreateReferralModal()" class="resale-btn">
-                        <i class="fas fa-plus"></i>
-                        Create New Code
-                    </button>
-                    <div id="referralCodes" class="codes-list"></div>
-                </div>
-
-                <div class="referred-users">
-                    <h3>
-                        <i class="fas fa-users"></i>
-                        Referred Users
-                    </h3>
-                    <div id="referredUsers" class="users-list"></div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Admin View (only for admin) -->
-            {% if user_role == 'admin' %}
-            <div class="admin-resale-panel">
-                <div class="resale-tabs">
-                    <button class="resale-tab active" onclick="switchResaleTab('requests')">
-                        <i class="fas fa-user-check"></i>
-                        Reseller Requests
-                    </button>
-                    <button class="resale-tab" onclick="switchResaleTab('management')">
-                        <i class="fas fa-users-cog"></i>
-                        Manage Resellers
-                    </button>
-                    <button class="resale-tab" onclick="switchResaleTab('sales')">
-                        <i class="fas fa-chart-line"></i>
-                        Sales & Payouts
-                    </button>
-                </div>
-
-                <div id="resale-requests" class="resale-content active">
-                    <div id="resellerRequests"></div>
-                </div>
-
-                <div id="resale-management" class="resale-content">
-                    <div id="resellerManagement"></div>
-                </div>
-
-                <div id="resale-sales" class="resale-content">
-                    <div id="salesData"></div>
-                </div>
-            </div>
+            {% if tier in ['Gold Edition', 'Elite Edition'] %}
+            <button onclick="applyChanges()" id="applyBtn" disabled>
+                <i class="fas fa-cloud-upload-alt"></i>
+                Apply Changes
+            </button>
             {% endif %}
         </div>
     </div>
-
-    <!-- Settings View -->
-    <div id="settings-view" class="view-content">
-        <div class="container">
-            <div class="settings-header">
-                <h2>
-                    <i class="fas fa-cog"></i>
-                    Settings
-                </h2>
-            </div>
-
-            <div class="settings-content">
-                <div class="setting-group">
-                    <h3>Appearance</h3>
-                    <div class="setting-item">
-                        <label>Theme</label>
-                        <select id="themeSelect">
-                            <option value="default">Neon Green</option>
-                            <option value="cyberpunk">Cyberpunk Blue</option>
-                            <option value="matrix">Matrix Green</option>
-                            <option value="purple">Purple Haze</option>
-                            <option value="sunset">Sunset Orange</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label>Font Size</label>
-                        <select id="fontSizeSelect">
-                            <option value="small">Small</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="large">Large</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label>Animation Speed</label>
-                        <select id="animationSpeed">
-                            <option value="slow">Slow</option>
-                            <option value="normal" selected>Normal</option>
-                            <option value="fast">Fast</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>Editor</h3>
-                    <div class="setting-item">
-                        <label>Auto-save</label>
-                        <input type="checkbox" id="autoSave" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label>Syntax Highlighting</label>
-                        <input type="checkbox" id="syntaxHighlight" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label>Line Numbers</label>
-                        <input type="checkbox" id="lineNumbers" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label>Word Wrap</label>
-                        <input type="checkbox" id="wordWrap">
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>Notifications</h3>
-                    <div class="setting-item">
-                        <label>Desktop Notifications</label>
-                        <input type="checkbox" id="desktopNotifications">
-                    </div>
-                    <div class="setting-item">
-                        <label>Sound Effects</label>
-                        <input type="checkbox" id="soundEffects" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label>Chat Notifications</label>
-                        <input type="checkbox" id="chatNotifications" checked>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <h3>Advanced</h3>
-                    <div class="setting-item">
-                        <label>Debug Mode</label>
-                        <input type="checkbox" id="debugMode">
-                    </div>
-                    <div class="setting-item">
-                        <label>Developer Console</label>
-                        <input type="checkbox" id="devConsole">
-                    </div>
-                    <div class="setting-item">
-                        <label>Experimental Features</label>
-                        <input type="checkbox" id="experimentalFeatures">
-                    </div>
-                </div>
-
-                <div class="settings-actions">
-                    <button onclick="applySettings()" class="apply-settings-btn">
-                        <i class="fas fa-check"></i>
-                        Apply Changes
-                    </button>
-                    <button onclick="resetSettings()" class="btn-secondary">
-                        <i class="fas fa-undo"></i>
-                        Reset to Default
-                    </button>
-                    <button onclick="exportSettings()" class="btn-secondary">
-                        <i class="fas fa-download"></i>
-                        Export Settings
-                    </button>
-                    <button onclick="importSettings()" class="btn-secondary">
-                        <i class="fas fa-upload"></i>
-                        Import Settings
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Other views (profile, admin) remain the same but only shown to appropriate users -->
 </div>
 
 <!-- Resale System Modals -->
@@ -1247,23 +987,25 @@ function enableNodeActions(enable) {
     });
 }
 
-// Resale System Functions
-function switchView(view) {
-    const views = document.querySelectorAll('.view-content');
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
-
-    views.forEach(v => v.classList.remove('active'));
-    navLinks.forEach(link => link.classList.remove('active'));
-
-    document.getElementById(view + '-view').classList.add('active');
-    document.querySelector(`[onclick="switchView('${view}')"]`).classList.add('active');
-
-    currentView = view;
+// New Window Functions
+function openResaleSystem() {
+    window.open('/resale', 'ResaleSystem', 'width=1200,height=800,scrollbars=yes,resizable=yes');
     closeSidebar();
+}
 
-    if (view === 'resale') {
-        loadResaleData();
-    }
+function openProfile() {
+    window.open('/profile', 'Profile', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    closeSidebar();
+}
+
+function openAdminPanel() {
+    window.open('/admin', 'AdminPanel', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+    closeSidebar();
+}
+
+function openSettings() {
+    window.open('/settings', 'Settings', 'width=1000,height=700,scrollbars=yes,resizable=yes');
+    closeSidebar();
 }
 
 function loadResaleData() {

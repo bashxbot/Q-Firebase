@@ -305,6 +305,43 @@ def index():
                          user_role=user_role,
                          pricelist=PRICELIST)
 
+@app.route('/resale')
+def resale_system():
+    if 'user_tier' not in session:
+        return redirect(url_for('login'))
+    
+    user_role = get_user_role(session.get('username', ''))
+    
+    return render_template('resale_system.html',
+                         tier=session['user_tier'],
+                         user_role=user_role,
+                         pricelist=PRICELIST)
+
+@app.route('/profile')
+def profile():
+    if 'user_tier' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('profile.html',
+                         tier=session['user_tier'],
+                         username=session.get('username', ''))
+
+@app.route('/admin')
+def admin_panel():
+    if 'user_tier' not in session or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    return render_template('admin_panel.html',
+                         tier=session['user_tier'])
+
+@app.route('/settings')
+def settings():
+    if 'user_tier' not in session:
+        return redirect(url_for('login'))
+    
+    return render_template('settings.html',
+                         tier=session['user_tier'])
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
