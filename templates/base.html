@@ -1160,7 +1160,7 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <div class="sidebar" id="mainSidebar">
         <div class="sidebar-header">
             <h3 class="sidebar-title">Firebase Editor</h3>
             <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
@@ -1218,7 +1218,7 @@
     </div>
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
     <div class="content-wrapper">
         {% block content %}{% endblock %}
@@ -1515,6 +1515,35 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             checkAdminAccess();
+            
+            // Hide sidebar and menu toggle on login page
+            if (window.location.pathname === '/login') {
+                const sidebar = document.getElementById('mainSidebar');
+                const menuToggle = document.getElementById('menuToggle');
+                if (sidebar) sidebar.style.display = 'none';
+                if (menuToggle) menuToggle.style.display = 'none';
+            }
+            
+            // Set up real-time updates for notifications and messages
+            if (window.location.pathname !== '/login') {
+                // Initial load
+                loadNotifications();
+                loadMessages();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(function() {
+                    loadNotifications();
+                    loadMessages();
+                }, 30000);
+                
+                // Refresh when page becomes visible
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        loadNotifications();
+                        loadMessages();
+                    }
+                });
+            }
         });
     </script>
 </body>

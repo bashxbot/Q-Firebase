@@ -263,17 +263,20 @@ function displayResellers(resellers) {
     const container = document.getElementById('resellersList');
     if (!container) return;
 
-    // Sort by sales count for ranking
-    const sortedResellers = [...resellers].sort((a, b) => (b.sales || 0) - (a.sales || 0));
+    // Sort by credits (total earned) for ranking - only visible to that reseller
+    const currentUser = '{{ session.get("username", "") }}';
+    const sortedResellers = [...resellers].sort((a, b) => (b.credits || 0) - (a.credits || 0));
 
     container.innerHTML = sortedResellers.map(reseller => {
         const sales = reseller.sales || 0;
+        const credits = reseller.credits || 0;
         let rankName = 'Rookie';
 
-        if (sales >= 100) rankName = 'Elite';
-        else if (sales >= 50) rankName = 'Expert';
-        else if (sales >= 25) rankName = 'Pro';
-        else if (sales >= 10) rankName = 'Advanced';
+        // Ranking based on credits earned
+        if (credits >= 1000) rankName = 'Elite';
+        else if (credits >= 500) rankName = 'Expert';
+        else if (credits >= 200) rankName = 'Pro';
+        else if (credits >= 100) rankName = 'Advanced';
 
         return `
             <div class="reseller-item" data-username="${reseller.username.toLowerCase()}">
@@ -282,6 +285,7 @@ function displayResellers(resellers) {
                     <div class="reseller-stats">
                         <span class="stat">💰 ${sales} sales</span>
                         <span class="stat">🏆 ${rankName}</span>
+                        ${currentUser === reseller.username ? `<span class="stat">💳 ${credits} credits</span>` : ''}
                         <span class="stat">⚡ ${reseller.commission_rate || 10}% commission</span>
                     </div>
                     <div class="platforms">
@@ -309,19 +313,20 @@ function displayBestResellers(resellers) {
     const container = document.getElementById('bestResellersList');
     if (!container) return;
 
-    // Sort by sales count (highest first)
+    // Sort by credits (highest first)
     const topResellers = resellers
-        .sort((a, b) => (b.sales || 0) - (a.sales || 0))
+        .sort((a, b) => (b.credits || 0) - (a.credits || 0))
         .slice(0, 5);
 
     container.innerHTML = topResellers.map((reseller, index) => {
         let rankName = 'Rookie';
+        const credits = reseller.credits || 0;
         const sales = reseller.sales || 0;
 
-        if (sales >= 100) rankName = 'Elite';
-        else if (sales >= 50) rankName = 'Expert';
-        else if (sales >= 25) rankName = 'Pro';
-        else if (sales >= 10) rankName = 'Advanced';
+        if (credits >= 1000) rankName = 'Elite';
+        else if (credits >= 500) rankName = 'Expert';
+        else if (credits >= 200) rankName = 'Pro';
+        else if (credits >= 100) rankName = 'Advanced';
 
         return `
             <div class="best-reseller-item">
@@ -576,6 +581,16 @@ function copyToClipboard(text) {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     loadResaleData();
+    
+    // Set up real-time updates every 30 seconds
+    setInterval(loadResaleData, 30000);
+    
+    // Refresh data when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            loadResaleData();
+        }
+    });
 });
 </script>
 

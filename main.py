@@ -45,28 +45,15 @@ CREDENTIALS = {
 
 # Enhanced admin data storage with resale system
 ADMIN_DATA = {
-    'users': [
-        {"username": "hey_silver", "tier": "Silver Edition", "status": "active", "email": "silver@demo.com", "role": "user", "credits": 0},
-        {"username": "hey_gold", "tier": "Gold Edition", "status": "active", "email": "gold@demo.com", "role": "user", "credits": 0},
-        {"username": "hey_elite", "tier": "Elite Edition", "status": "active", "email": "elite@demo.com", "role": "user", "credits": 0}
-    ],
-    'referrals': [
-        {"code": "WELCOME2024", "used": 45, "limit": 100, "tier": "Gold Edition", "status": "active", "creator": "admin", "commission_rate": 10},
-        {"code": "ELITE2024", "used": 12, "limit": 25, "tier": "Elite Edition", "status": "active", "creator": "admin", "commission_rate": 15}
-    ],
+    'users': [],
+    'referrals': [],
     'subscriptions': {
         "Silver Edition": {"price": 0, "features": ["View Only Access"]},
         "Gold Edition": {"price": 9.99, "features": ["Edit Access", "Export Data"]},
         "Elite Edition": {"price": 19.99, "features": ["Full Access", "Admin Panel", "API Access"]}
     },
-    'resellers': [
-        {"username": "demo_reseller", "status": "approved", "commission_rate": 15, "credits": 100, "earnings": {"pending": 45.50, "paid": 120.00}, "platforms": ["telegram", "discord"], "sales": 75},
-        {"username": "top_seller", "status": "approved", "commission_rate": 12, "credits": 200, "earnings": {"pending": 80.00, "paid": 350.00}, "platforms": ["telegram", "whatsapp"], "sales": 125},
-        {"username": "pro_reseller", "status": "approved", "commission_rate": 10, "credits": 50, "earnings": {"pending": 25.00, "paid": 150.00}, "platforms": ["discord"], "sales": 45}
-    ],
-    'reseller_requests': [
-        {"username": "pending_user", "request_date": "2024-01-15", "status": "pending", "message": "I want to become a reseller"}
-    ],
+    'resellers': [],
+    'reseller_requests': [],
     'chats': [],
     'sales': [],
     'notifications': [],
@@ -87,6 +74,18 @@ def load_pricelist():
         return {}
 
 PRICELIST = load_pricelist()
+
+# Initialize existing users in ADMIN_DATA
+for username, creds in CREDENTIALS.items():
+    if username != 'admin':
+        ADMIN_DATA['users'].append({
+            "username": username,
+            "tier": creds["tier"],
+            "status": "active",
+            "email": f"{username}@demo.com",
+            "role": "user",
+            "credits": 0
+        })
 
 URL_PROFILES_FILE = "firebase_urls.json"
 
@@ -437,14 +436,24 @@ def signup():
     # Add commission to referrer if it's a reseller
     for reseller in ADMIN_DATA['resellers']:
         if reseller['username'] == referral.get('creator', 'admin'):
-            commission = PRICELIST.get(tier.lower().split()[0], {}).get('30', {}).get('user_price', 0) * (referral['commission_rate'] / 100)
+            tier_key = tier.lower().split()[0]
+            tier_price = PRICELIST.get(tier_key, {}).get('30', {}).get('user_price', 0)
+            commission = tier_price * (referral['commission_rate'] / 100)
+            
+            # Add to earnings and increment sales count
             reseller['earnings']['pending'] += commission
+            reseller['sales'] = reseller.get('sales', 0) + 1
+            
+            # Add credits based on sale amount for ranking
+            reseller['credits'] += tier_price
+            
             ADMIN_DATA['sales'].append({
                 "id": str(uuid.uuid4()),
                 "referrer": referral.get('creator', 'admin'),
                 "user": username,
                 "tier": tier,
                 "commission": commission,
+                "sale_amount": tier_price,
                 "date": datetime.now().isoformat(),
                 "status": "pending"
             })
@@ -564,6 +573,32 @@ def create_referral_code():
         if ref['code'] == code:
             return jsonify({'success': False, 'error': 'Referral code already exists'})
 
+    # Find reseller and check credits
+    reseller = None
+    for r in ADMIN_DATA['resellers']:
+        if r['username'] == username:
+            reseller = r
+            break
+
+    if not reseller and user_role != 'admin':
+        return jsonify({'success': False, 'error': 'Reseller not found'})
+
+    # Calculate cost based on tier and duration
+    tier_key = tier.lower().split()[0]  # silver, gold, elite
+    tier_prices = PRICELIST.get(tier_key, {})
+    
+    # Use 30-day price as base cost for creating referral
+    base_cost = tier_prices.get('30', {}).get('user_price', 3.00)
+    referral_cost = base_cost * limit  # Cost per referral limit
+    
+    # Check if reseller has enough credits (admin bypasses this)
+    if user_role != 'admin':
+        if reseller['credits'] < referral_cost:
+            return jsonify({'success': False, 'error': f'Insufficient credits. Need {referral_cost} credits, have {reseller["credits"]}'})
+        
+        # Deduct credits
+        reseller['credits'] -= referral_cost
+
     ADMIN_DATA['referrals'].append({
         "code": code,
         "used": 0,
@@ -572,10 +607,11 @@ def create_referral_code():
         "status": "active",
         "creator": username,
         "commission_rate": commission_rate,
-        "created_date": datetime.now().isoformat()
+        "created_date": datetime.now().isoformat(),
+        "cost": referral_cost
     })
 
-    return jsonify({'success': True, 'message': 'Referral code created successfully'})
+    return jsonify({'success': True, 'message': f'Referral code created successfully. Cost: {referral_cost} credits'})
 
 @app.route('/api/resale/admin/approve_reseller', methods=['POST'])
 def approve_reseller():
