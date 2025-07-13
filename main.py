@@ -1255,6 +1255,52 @@ def user_theme():
         session['theme'] = theme
         return jsonify({'success': True, 'message': 'Theme updated'})
 
+# Messages API Route
+@app.route('/api/messages')
+def get_messages():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+    
+    # Get all conversations for this user
+    conversations = {}
+    for chat in ADMIN_DATA['chats']:
+        if chat['sender'] == username or chat['recipient'] == username:
+            other_user = chat['recipient'] if chat['sender'] == username else chat['sender']
+            
+            if other_user not in conversations:
+                conversations[other_user] = {
+                    'participant': other_user,
+                    'messages': [],
+                    'unread_count': 0,
+                    'last_message': '',
+                    'last_message_time': chat['timestamp']
+                }
+            
+            conversations[other_user]['messages'].append(chat)
+            
+            # Update last message info
+            if chat['timestamp'] > conversations[other_user]['last_message_time']:
+                conversations[other_user]['last_message'] = chat['message'][:50] + ('...' if len(chat['message']) > 50 else '')
+                conversations[other_user]['last_message_time'] = chat['timestamp']
+            
+            # Count unread messages
+            if chat['recipient'] == username and not chat['read']:
+                conversations[other_user]['unread_count'] += 1
+
+    # Convert to list and sort by last message time
+    conversation_list = list(conversations.values())
+    conversation_list.sort(key=lambda x: x['last_message_time'], reverse=True)
+    
+    total_unread = sum(conv['unread_count'] for conv in conversation_list)
+
+    return jsonify({
+        'success': True,
+        'conversations': conversation_list,
+        'unread_count': total_unread
+    })
+
 # Notification API Routes
 @app.route('/api/notifications')
 def get_notifications():

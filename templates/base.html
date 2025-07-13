@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -893,16 +892,16 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            
+
             .header {
                 flex-direction: column;
                 gap: 16px;
             }
-            
+
             .url-section {
                 order: 1;
             }
-            
+
             .header-buttons {
                 order: 2;
                 justify-content: center;
@@ -913,12 +912,12 @@
             .content-wrapper.shifted {
                 margin-left: 0;
             }
-            
+
             .sidebar {
                 width: 100vw;
                 left: -100vw;
             }
-            
+
             .sidebar.open {
                 left: 0;
             }
@@ -928,33 +927,33 @@
             .container {
                 padding: 16px;
             }
-            
+
             .header {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 16px;
             }
-            
+
             .url-section {
                 flex-direction: column;
                 gap: 12px;
                 min-width: unset;
             }
-            
+
             .search-section {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 12px;
             }
-            
+
             .node-actions {
                 flex-direction: column;
             }
-            
+
             .node-actions button {
                 min-width: unset;
             }
-            
+
             .bottom-actions {
                 flex-direction: column;
             }
@@ -981,9 +980,128 @@
             0% { left: -100%; }
             100% { left: 100%; }
         }
+
+        .notification-dot {
+            height: 8px;
+            width: 8px;
+            background-color: red;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Firebase Editor</h3>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+            <li><a href="/">
+                <i class="fas fa-home"></i>
+                Dashboard
+            </a></li>
+            <li><a href="/profile">
+                <i class="fas fa-user"></i>
+                Profile
+            </a></li>
+            <li><a href="/settings">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a></li>
+            <li><a href="#" onclick="showNotifications()">
+                <i class="fas fa-bell"></i>
+                Notifications
+                <span class="notification-dot" id="notificationDot" style="display: none;"></span>
+            </a></li>
+            <li><a href="#" onclick="showMessages()">
+                <i class="fas fa-envelope"></i>
+                Messages
+                <span class="notification-dot" id="messagesDot" style="display: none;"></span>
+            </a></li>
+        </ul>
+    </nav>
+        <div class="theme-selector">
+            <h4>Theme</h4>
+            <div class="theme-grid">
+                <div class="theme-option" data-theme="default">Default</div>
+                <div class="theme-option" data-theme="cyberpunk">Cyberpunk</div>
+                <div class="theme-option" data-theme="matrix">Matrix</div>
+                <div class="theme-option" data-theme="purple">Purple Haze</div>
+                <div class="theme-option" data-theme="sunset">Sunset Orange</div>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+
+    <div class="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            contentWrapper.classList.toggle('shifted');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const currentTheme = localStorage.getItem('theme') || 'default';
+            setTheme(currentTheme);
+
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const theme = option.dataset.theme;
+                    setTheme(theme);
+                    localStorage.setItem('theme', theme);
+                });
+            });
+
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                themeOptions.forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.theme === theme) {
+                        option.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        function showNotifications() {
+            // Placeholder for notifications functionality
+            alert('Notifications feature coming soon!');
+        }
+
+        function showMessages() {
+            // Placeholder for messages functionality
+            alert('Messages feature coming soon!');
+        }
+
+         // Function to show notification dot (call this when a new notification arrives)
+        function showNotificationDot() {
+            document.getElementById('notificationDot').style.display = 'inline-block';
+        }
+
+        // Function to show messages dot (call this when a new message arrives)
+        function showMessagesDot() {
+            document.getElementById('messagesDot').style.display = 'inline-block';
+        }
+
+        // Example usage (you would replace this with your actual notification/message logic)
+        // Simulate new notification
+        //setTimeout(showNotificationDot, 5000);
+
+        // Simulate new message
+        //setTimeout(showMessagesDot, 8000);
+    </script>
 </body>
 </html>

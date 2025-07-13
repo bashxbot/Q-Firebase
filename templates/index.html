@@ -263,16 +263,56 @@
         </div>
         <div class="notifications-content">
             <div class="notifications-actions">
-                <button onclick="markAllAsRead()" class="btn-secondary">
+                <button onclick="markAllNotificationsRead()" class="btn-secondary">
                     <i class="fas fa-check"></i>
                     Mark All Read
                 </button>
-                <button onclick="clearNotifications()" class="btn-secondary">
+                <button onclick="clearAllNotifications()" class="btn-secondary">
                     <i class="fas fa-trash"></i>
                     Clear All
                 </button>
             </div>
-            <div id="notificationsList" class="notifications-list"></div>
+            <div id="notificationsList" class="notifications-list modal-content-scrollable"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages Modal -->
+<div id="messagesModal" class="modal">
+    <div class="modal-content messages-modal">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-envelope"></i>
+                Messages
+            </h3>
+            <button onclick="closeModal('messagesModal')" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="messages-content">
+            <div id="messagesList" class="messages-list modal-content-scrollable"></div>
+        </div>
+    </div>
+</div></div>
+
+<!-- Individual Chat Modal -->
+<div id="individualChatModal" class="modal">
+    <div class="modal-content chat-modal">
+        <div class="chat-header">
+            <h3 id="individualChatTitle">
+                <i class="fas fa-comments"></i>
+                Chat
+            </h3>
+            <button onclick="closeModal('individualChatModal')" class="chat-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-messages" id="individualChatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="individualChatInput" placeholder="Type your message..." onkeypress="handleIndividualChatKeypress(event)">
+            <button onclick="sendIndividualChatMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -1454,7 +1494,100 @@ function handleDialogConfirm() {
     closeModal('customDialog');
 }
 
-function markAllAsRead() {
+function showNotifications() {
+    loadNotifications();
+    showModal('notificationsModal');
+    closeSidebar();
+}
+
+function showMessages() {
+    loadMessages();
+    showModal('messagesModal');
+    closeSidebar();
+}
+
+function loadNotifications() {
+    fetch('/api/notifications')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayNotifications(data.notifications);
+            updateNotificationDot(data.unread_count);
+        }
+    });
+}
+
+function loadMessages() {
+    fetch('/api/messages')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayMessages(data.conversations);
+            updateMessagesDot(data.unread_count);
+        }
+    });
+}
+
+function displayNotifications(notifications) {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    if (notifications.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--fg-secondary); padding: 20px;">No notifications</div>';
+        return;
+    }
+
+    container.innerHTML = notifications.map(notif => `
+        <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="markNotificationRead('${notif.id}')">
+            <div class="notification-header">
+                <span class="notification-title">${notif.title}</span>
+                <span class="notification-time">${new Date(notif.timestamp).toLocaleString()}</span>
+            </div>
+            <div class="notification-content">
+                ${notif.message}
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayMessages(conversations) {
+    const container = document.getElementById('messagesList');
+    if (!container) return;
+
+    if (conversations.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--fg-secondary); padding: 20px;">No messages</div>';
+        return;
+    }
+
+    container.innerHTML = conversations.map(conv => `
+        <div class="message-item ${conv.unread_count > 0 ? 'unread' : ''}" onclick="openIndividualChat('${conv.participant}')">
+            <div class="message-header">
+                <span class="message-sender">${conv.participant}</span>
+                <span class="notification-time">${new Date(conv.last_message_time).toLocaleString()}</span>
+            </div>
+            <div class="message-preview">
+                ${conv.last_message}
+                ${conv.unread_count > 0 ? `<span style="color: var(--accent-tertiary); font-weight: 600;"> (${conv.unread_count} new)</span>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function markNotificationRead(notificationId) {
+    fetch('/api/notifications/read', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({notification_id: notificationId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+        }
+    });
+}
+
+function markAllNotificationsRead() {
     fetch('/api/notifications/mark_all_read', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'}
@@ -1467,7 +1600,7 @@ function markAllAsRead() {
     });
 }
 
-function clearNotifications() {
+function clearAllNotifications() {
     customConfirm('Clear Notifications', 'Are you sure you want to clear all notifications?', (confirmed) => {
         if (confirmed) {
             fetch('/api/notifications/clear', {
@@ -1482,6 +1615,84 @@ function clearNotifications() {
             });
         }
     });
+}
+
+function openIndividualChat(participant) {
+    currentChatRecipient = participant;
+    document.getElementById('individualChatTitle').innerHTML = `<i class="fas fa-comments"></i> Chat with ${participant}`;
+    loadIndividualChatMessages(participant);
+    closeModal('messagesModal');
+    showModal('individualChatModal');
+}
+
+function loadIndividualChatMessages(participant) {
+    fetch(`/api/resale/chat/get/${participant}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayIndividualChatMessages(data.messages);
+        }
+    });
+}
+
+function displayIndividualChatMessages(messages) {
+    const container = document.getElementById('individualChatMessages');
+    const currentUser = '{{ session.get("username", "") }}';
+
+    container.innerHTML = messages.map(msg => `
+        <div class="chat-message ${msg.sender === currentUser ? 'own' : 'other'}">
+            <div class="message-bubble ${msg.sender === currentUser ? 'own' : 'other'}">
+                ${msg.message}
+                <div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+            </div>
+        </div>
+    `).join('');
+
+    container.scrollTop = container.scrollHeight;
+}
+
+function handleIndividualChatKeypress(event) {
+    if (event.key === 'Enter') {
+        sendIndividualChatMessage();
+    }
+}
+
+function sendIndividualChatMessage() {
+    const input = document.getElementById('individualChatInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    fetch('/api/resale/chat/send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            recipient: currentChatRecipient,
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadIndividualChatMessages(currentChatRecipient);
+            loadMessages(); // Refresh messages list
+        }
+    });
+}
+
+function updateNotificationDot(unreadCount) {
+    const dot = document.getElementById('notificationDot');
+    if (dot) {
+        dot.style.display = unreadCount > 0 ? 'block' : 'none';
+    }
+}
+
+function updateMessagesDot(unreadCount) {
+    const dot = document.getElementById('messagesDot');
+    if (dot) {
+        dot.style.display = unreadCount > 0 ? 'block' : 'none';
+    }
 }
 
 // Initialize page
@@ -1508,8 +1719,15 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTheme(settings.theme || 'default');
     }
 
-    // Periodic notification check
-    setInterval(loadNotifications, 30000); // Check every 30 seconds
+    // Load notifications and messages status initially
+    loadNotifications();
+    loadMessages();
+
+    // Periodic notification and messages check
+    setInterval(() => {
+        loadNotifications();
+        loadMessages();
+    }, 30000); // Check every 30 seconds
 });
 
 // Keep all other existing functions (fetchData, updateNode, etc.)...
