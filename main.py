@@ -60,7 +60,9 @@ ADMIN_DATA = {
         "Elite Edition": {"price": 19.99, "features": ["Full Access", "Admin Panel", "API Access"]}
     },
     'resellers': [
-        {"username": "demo_reseller", "status": "approved", "commission_rate": 15, "credits": 100, "earnings": {"pending": 45.50, "paid": 120.00}, "platforms": ["telegram", "discord"]}
+        {"username": "demo_reseller", "status": "approved", "commission_rate": 15, "credits": 100, "earnings": {"pending": 45.50, "paid": 120.00}, "platforms": ["telegram", "discord"], "sales": 75},
+        {"username": "top_seller", "status": "approved", "commission_rate": 12, "credits": 200, "earnings": {"pending": 80.00, "paid": 350.00}, "platforms": ["telegram", "whatsapp"], "sales": 125},
+        {"username": "pro_reseller", "status": "approved", "commission_rate": 10, "credits": 50, "earnings": {"pending": 25.00, "paid": 150.00}, "platforms": ["discord"], "sales": 45}
     ],
     'reseller_requests': [
         {"username": "pending_user", "request_date": "2024-01-15", "status": "pending", "message": "I want to become a reseller"}
@@ -1382,16 +1384,16 @@ def admin_add_reseller():
     if not session.get('is_admin', False):
         return jsonify({'success': False, 'error': 'Admin access required'})
 
-    username = request.json.get('username', '')
+    username = request.json.get('username', '').strip()
     package = request.json.get('package', '$25')
+    commission_rate = request.json.get('commission_rate', 10)
 
     if not username:
         return jsonify({'success': False, 'error': 'Username is required'})
 
-    # Check if user exists
-    user_exists = any(u['username'] == username for u in ADMIN_DATA['users'])
-    if not user_exists:
-        return jsonify({'success': False, 'error': 'User not found'})
+    # Check if user exists in credentials
+    if username not in CREDENTIALS:
+        return jsonify({'success': False, 'error': 'User not found in system'})
 
     # Check if already a reseller
     reseller_exists = any(r['username'] == username for r in ADMIN_DATA['resellers'])
@@ -1402,24 +1404,43 @@ def admin_add_reseller():
     package_info = ADMIN_DATA['reseller_packages'].get(package, {'credits': 25, 'price': 25})
 
     # Add as reseller
-    ADMIN_DATA['resellers'].append({
+    new_reseller = {
         "username": username,
         "status": "approved",
-        "commission_rate": 10,
+        "commission_rate": commission_rate,
         "credits": package_info['credits'],
-        "earnings": {"pending": 0, "paid": 0},
+        "earnings": {"pending": 0.0, "paid": 0.0},
         "platforms": [],
+        "sales": 0,
         "approved_date": datetime.now().isoformat(),
         "package": package
-    })
+    }
+    
+    ADMIN_DATA['resellers'].append(new_reseller)
+
+    # Update user role in admin data if exists
+    for user in ADMIN_DATA['users']:
+        if user['username'] == username:
+            user['role'] = 'reseller'
+            break
+    else:
+        # Add user to admin data if not exists
+        ADMIN_DATA['users'].append({
+            "username": username,
+            "tier": CREDENTIALS[username]['tier'],
+            "status": "active",
+            "email": f"{username}@demo.com",
+            "role": "reseller",
+            "credits": package_info['credits']
+        })
 
     # Create notification for user
     create_notification(
         username,
         "Reseller Access Granted",
-        f"You have been granted reseller access with {package_info['credits']} credits",
+        f"You have been granted reseller access with {package_info['credits']} credits and {commission_rate}% commission rate",
         "system",
-        {"package": package, "credits": package_info['credits']}
+        {"package": package, "credits": package_info['credits'], "commission_rate": commission_rate}
     )
 
     return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
