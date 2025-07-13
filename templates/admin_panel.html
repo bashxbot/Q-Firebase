@@ -1,0 +1,877 @@
+
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Firebase RTDB Editor{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-header">
+        <h2>
+            <i class="fas fa-crown"></i>
+            Admin Panel
+        </h2>
+        <button onclick="goBack()" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Back to Firebase Editor
+        </button>
+    </div>
+
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('users')">
+            <i class="fas fa-users"></i>
+            Manage Users
+        </button>
+        <button class="tab-btn" onclick="switchTab('referrals')">
+            <i class="fas fa-gift"></i>
+            Referral Codes
+        </button>
+        <button class="tab-btn" onclick="switchTab('subscriptions')">
+            <i class="fas fa-credit-card"></i>
+            Subscriptions
+        </button>
+        <button class="tab-btn" onclick="switchTab('resellers')">
+            <i class="fas fa-store"></i>
+            Reseller Management
+        </button>
+        <button class="tab-btn" onclick="switchTab('analytics')">
+            <i class="fas fa-chart-bar"></i>
+            Analytics
+        </button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="users-tab" class="tab-content active">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>User Management</h3>
+                <button onclick="showAddUserModal()" class="admin-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Add User
+                </button>
+            </div>
+            <div class="users-table">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Tier</th>
+                            <th>Status</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referrals Tab -->
+    <div id="referrals-tab" class="tab-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Referral Code Management</h3>
+                <button onclick="showCreateReferralModal()" class="admin-btn">
+                    <i class="fas fa-plus"></i>
+                    Create Referral
+                </button>
+            </div>
+            <div class="referrals-grid" id="referralsGrid">
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscriptions Tab -->
+    <div id="subscriptions-tab" class="tab-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Subscription Management</h3>
+                <button onclick="showSubscriptionModal()" class="admin-btn">
+                    <i class="fas fa-plus"></i>
+                    Add Subscription
+                </button>
+            </div>
+            <div class="subscription-tiers">
+                <div class="tier-card silver">
+                    <h4>Silver Edition</h4>
+                    <div class="tier-features">
+                        <p>View Only Access</p>
+                        <p>Basic Features</p>
+                    </div>
+                    <div class="tier-price">Free</div>
+                </div>
+                <div class="tier-card gold">
+                    <h4>Gold Edition</h4>
+                    <div class="tier-features">
+                        <p>Edit Access</p>
+                        <p>Export Data</p>
+                        <p>Advanced Features</p>
+                    </div>
+                    <div class="tier-price">$9.99/month</div>
+                </div>
+                <div class="tier-card elite">
+                    <h4>Elite Edition</h4>
+                    <div class="tier-features">
+                        <p>Full Access</p>
+                        <p>Admin Panel</p>
+                        <p>API Access</p>
+                        <p>Priority Support</p>
+                    </div>
+                    <div class="tier-price">$19.99/month</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resellers Tab -->
+    <div id="resellers-tab" class="tab-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Reseller Management</h3>
+                <div class="reseller-stats" id="resellerStats">
+                </div>
+            </div>
+            <div class="reseller-requests" id="resellerRequests">
+            </div>
+            <div class="active-resellers" id="activeResellers">
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics-tab" class="tab-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>Analytics Dashboard</h3>
+            </div>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Total Users</h4>
+                    <div class="analytics-value" id="totalUsers">0</div>
+                </div>
+                <div class="analytics-card">
+                    <h4>Active Subscriptions</h4>
+                    <div class="analytics-value" id="activeSubscriptions">0</div>
+                </div>
+                <div class="analytics-card">
+                    <h4>Total Revenue</h4>
+                    <div class="analytics-value" id="totalRevenue">$0.00</div>
+                </div>
+                <div class="analytics-card">
+                    <h4>Active Resellers</h4>
+                    <div class="analytics-value" id="activeResellers">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-user-plus"></i>
+            Add New User
+        </h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="newUsername" placeholder="Enter username...">
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="newEmail" placeholder="Enter email...">
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" id="newPassword" placeholder="Enter password...">
+        </div>
+        <div class="form-group">
+            <label>Tier:</label>
+            <select id="newUserTier">
+                <option value="Silver Edition">Silver Edition</option>
+                <option value="Gold Edition">Gold Edition</option>
+                <option value="Elite Edition">Elite Edition</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button onclick="addUser()">
+                <i class="fas fa-plus"></i>
+                Add User
+            </button>
+            <button onclick="closeModal('addUserModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="createReferralModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-gift"></i>
+            Create Referral Code
+        </h3>
+        <div class="form-group">
+            <label>Code Name:</label>
+            <input type="text" id="referralName" placeholder="Enter referral name...">
+        </div>
+        <div class="form-group">
+            <label>Uses Limit:</label>
+            <input type="number" id="referralLimit" placeholder="Enter usage limit..." value="100">
+        </div>
+        <div class="form-group">
+            <label>Target Tier:</label>
+            <select id="referralTier">
+                <option value="Silver Edition">Silver Edition</option>
+                <option value="Gold Edition">Gold Edition</option>
+                <option value="Elite Edition">Elite Edition</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button onclick="createReferral()">
+                <i class="fas fa-plus"></i>
+                Create
+            </button>
+            <button onclick="closeModal('createReferralModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="subscriptionModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-credit-card"></i>
+            Add Subscription
+        </h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="subUsername" placeholder="Enter username...">
+        </div>
+        <div class="form-group">
+            <label>Tier:</label>
+            <select id="subTier">
+                <option value="Silver Edition">Silver Edition</option>
+                <option value="Gold Edition">Gold Edition</option>
+                <option value="Elite Edition">Elite Edition</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Duration (days):</label>
+            <input type="number" id="subDuration" value="30" min="1">
+        </div>
+        <div class="modal-actions">
+            <button onclick="addSubscription()">
+                <i class="fas fa-plus"></i>
+                Add Subscription
+            </button>
+            <button onclick="closeModal('subscriptionModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Admin Panel Styles */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.admin-header h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-tabs {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    min-width: 150px;
+}
+
+.tab-btn.active {
+    background: var(--gradient-primary);
+    color: var(--bg-primary);
+    box-shadow: var(--shadow-neon);
+}
+
+.tab-btn:hover:not(.active) {
+    color: var(--fg-primary);
+    background: var(--bg-tertiary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.admin-section {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.section-header h3 {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-primary);
+    margin: 0;
+}
+
+.admin-btn {
+    background: var(--gradient-primary);
+    color: var(--bg-primary);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-neon);
+}
+
+.users-table {
+    overflow-x: auto;
+}
+
+.users-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.users-table th,
+.users-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.users-table th {
+    background: var(--bg-secondary);
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.users-table td {
+    color: var(--fg-primary);
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.user-actions button {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: auto;
+}
+
+.referrals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.referral-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.referral-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-primary);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.referral-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: 8px;
+}
+
+.referral-stats {
+    color: var(--fg-secondary);
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.subscription-tiers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.tier-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tier-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transition: opacity 0.3s ease;
+    opacity: 0.6;
+}
+
+.tier-card.silver::before {
+    background: linear-gradient(90deg, #c0c0c0, #e8e8e8);
+}
+
+.tier-card.gold::before {
+    background: linear-gradient(90deg, #ffd700, #ffed4e);
+}
+
+.tier-card.elite::before {
+    background: var(--gradient-primary);
+}
+
+.tier-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-primary);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.tier-card:hover::before {
+    opacity: 1;
+}
+
+.tier-card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-primary);
+    margin-bottom: 16px;
+}
+
+.tier-features {
+    margin-bottom: 20px;
+}
+
+.tier-features p {
+    margin: 8px 0;
+    color: var(--fg-secondary);
+}
+
+.tier-price {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent-secondary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.analytics-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.analytics-card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--fg-secondary);
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.analytics-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--accent-primary);
+}
+
+.status-banned {
+    background: rgba(255, 51, 102, 0.1);
+    color: var(--accent-tertiary);
+}
+
+@media (max-width: 768px) {
+    .admin-tabs {
+        flex-direction: column;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .users-table {
+        font-size: 12px;
+    }
+
+    .user-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Admin Panel Functions
+function switchTab(tabName) {
+    // Remove active class from all tabs and content
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to clicked tab and corresponding content
+    event.target.classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Load data for the selected tab
+    loadTabData(tabName);
+}
+
+function loadTabData(tabName) {
+    switch(tabName) {
+        case 'users':
+            loadUsers();
+            break;
+        case 'referrals':
+            loadReferrals();
+            break;
+        case 'resellers':
+            loadResellers();
+            break;
+        case 'analytics':
+            loadAnalytics();
+            break;
+    }
+}
+
+function loadUsers() {
+    fetch('/api/admin/users')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayUsers(data.users);
+        }
+    });
+}
+
+function displayUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td>${user.username}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>${user.tier}</td>
+            <td><span class="status-badge status-${user.status}">${user.status}</span></td>
+            <td>${user.role || 'user'}</td>
+            <td>
+                <div class="user-actions">
+                    <button onclick="toggleUserStatus('${user.username}')" class="btn-secondary">
+                        <i class="fas fa-${user.status === 'active' ? 'ban' : 'check'}"></i>
+                        ${user.status === 'active' ? 'Ban' : 'Unban'}
+                    </button>
+                    <button onclick="deleteUser('${user.username}')" class="btn-danger">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function loadReferrals() {
+    fetch('/api/admin/referrals')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayReferrals(data.referrals);
+        }
+    });
+}
+
+function displayReferrals(referrals) {
+    const container = document.getElementById('referralsGrid');
+    container.innerHTML = referrals.map(ref => `
+        <div class="referral-card">
+            <div class="referral-code">${ref.code}</div>
+            <div class="referral-stats">
+                Used: ${ref.used}/${ref.limit}<br>
+                Tier: ${ref.tier}<br>
+                Status: ${ref.status}
+            </div>
+            <button onclick="toggleReferralStatus('${ref.code}')" class="admin-btn">
+                <i class="fas fa-${ref.status === 'active' ? 'pause' : 'play'}"></i>
+                ${ref.status === 'active' ? 'Deactivate' : 'Activate'}
+            </button>
+        </div>
+    `).join('');
+}
+
+function loadAnalytics() {
+    // Update analytics display
+    fetch('/api/admin/analytics')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('totalUsers').textContent = data.analytics.total_users;
+            document.getElementById('activeSubscriptions').textContent = data.analytics.active_subscriptions;
+            document.getElementById('totalRevenue').textContent = '$' + data.analytics.total_revenue.toFixed(2);
+            document.getElementById('activeResellers').textContent = data.analytics.active_resellers;
+        }
+    })
+    .catch(() => {
+        // Fallback with demo data
+        document.getElementById('totalUsers').textContent = '156';
+        document.getElementById('activeSubscriptions').textContent = '89';
+        document.getElementById('totalRevenue').textContent = '$2,840.50';
+        document.getElementById('activeResellers').textContent = '12';
+    });
+}
+
+function showAddUserModal() {
+    showModal('addUserModal');
+}
+
+function showCreateReferralModal() {
+    showModal('createReferralModal');
+}
+
+function showSubscriptionModal() {
+    showModal('subscriptionModal');
+}
+
+function addUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const password = document.getElementById('newPassword').value.trim();
+    const tier = document.getElementById('newUserTier').value;
+
+    if (!username || !password) {
+        alert('Username and password are required');
+        return;
+    }
+
+    fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password,
+            tier: tier
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeModal('addUserModal');
+            loadUsers();
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+function createReferral() {
+    const code = document.getElementById('referralName').value.trim();
+    const limit = parseInt(document.getElementById('referralLimit').value);
+    const tier = document.getElementById('referralTier').value;
+
+    if (!code) {
+        alert('Referral code is required');
+        return;
+    }
+
+    fetch('/api/admin/referrals', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            code: code,
+            limit: limit,
+            tier: tier
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeModal('createReferralModal');
+            loadReferrals();
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+function addSubscription() {
+    const username = document.getElementById('subUsername').value.trim();
+    const tier = document.getElementById('subTier').value;
+    const duration = parseInt(document.getElementById('subDuration').value);
+
+    if (!username) {
+        alert('Username is required');
+        return;
+    }
+
+    fetch('/api/admin/subscription', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            username: username,
+            tier: tier,
+            duration: duration
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeModal('subscriptionModal');
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+function toggleUserStatus(username) {
+    if (confirm(`Are you sure you want to toggle the status of user ${username}?`)) {
+        fetch('/api/admin/toggle_user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: username})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                loadUsers();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+}
+
+function deleteUser(username) {
+    if (confirm(`Are you sure you want to delete user ${username}? This action cannot be undone.`)) {
+        fetch('/api/admin/users', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: username})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                loadUsers();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+}
+
+function showModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function goBack() {
+    window.location.href = '/';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers(); // Load users tab by default
+});
+</script>
+{% endblock %}

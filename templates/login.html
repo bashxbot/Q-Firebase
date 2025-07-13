@@ -1,0 +1,760 @@
+
+{% extends "base.html" %}
+
+{% block title %}Login - Firebase RTDB Editor{% endblock %}
+
+{% block content %}
+<!-- Theme Selector for Login -->
+<div class="login-theme-selector">
+    <div class="theme-options">
+        <div class="theme-option active" data-theme="default" title="Neon Green"></div>
+        <div class="theme-option" data-theme="cyberpunk" title="Cyberpunk Blue"></div>
+        <div class="theme-option" data-theme="matrix" title="Matrix Green"></div>
+        <div class="theme-option" data-theme="purple" title="Purple Haze"></div>
+        <div class="theme-option" data-theme="sunset" title="Sunset Orange"></div>
+    </div>
+</div>
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-database"></i>
+                <span>Firebase RTDB</span>
+            </div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to your account</p>
+        </div>
+        
+        <div class="login-tabs">
+            <button class="tab-btn active" onclick="switchTab('signin')">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </button>
+            <button class="tab-btn" onclick="switchTab('signup')">
+                <i class="fas fa-user-plus"></i>
+                Sign Up
+            </button>
+        </div>
+
+        <div class="login-content">
+            <!-- Sign In Form -->
+            <form method="POST" id="signin-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                </div>
+                
+                {% if error %}
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                <button type="submit" class="auth-btn">
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Sign Up Form -->
+            <div id="signup-form" class="auth-form">
+                <div class="form-group">
+                    <label for="signup-username">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </label>
+                    <input type="text" id="signup-username" placeholder="Choose a username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-email">
+                        <i class="fas fa-envelope"></i>
+                        Email
+                    </label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-password">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <input type="password" id="signup-password" placeholder="Create a password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">
+                        <i class="fas fa-lock"></i>
+                        Confirm Password
+                    </label>
+                    <input type="password" id="confirm-password" placeholder="Confirm your password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="referral-code">
+                        <i class="fas fa-gift"></i>
+                        Referral Code *
+                    </label>
+                    <input type="text" id="referral-code" placeholder="Enter referral code (required)" required>
+                    <small style="color: var(--fg-muted); font-size: 12px;">* Referral code is required to create an account</small>
+                </div>
+                
+                <div id="signup-error" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="signup-error-text"></span>
+                </div>
+                
+                <button type="button" class="auth-btn" onclick="handleSignup()">
+                    <span>Create Account</span>
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-credentials">
+            <h4>
+                <i class="fas fa-key"></i>
+                Demo Credentials
+            </h4>
+            <div class="credentials-grid">
+                <div class="credential-card silver">
+                    <div class="tier-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h5>Silver Edition</h5>
+                    <p><strong>hey_silver</strong> / view_data</p>
+                    <span class="tier-label">View Only</span>
+                </div>
+                <div class="credential-card gold">
+                    <div class="tier-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h5>Gold Edition</h5>
+                    <p><strong>hey_gold</strong> / edit_data</p>
+                    <span class="tier-label">Edit Access</span>
+                </div>
+                <div class="credential-card elite">
+                    <div class="tier-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h5>Elite Edition</h5>
+                    <p><strong>hey_elite</strong> / elite_data</p>
+                    <span class="tier-label">Full Access</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+    }
+
+    .login-box {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 40px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: var(--shadow-card);
+        position: relative;
+        overflow: hidden;
+        animation: slideUp 0.6s ease;
+    }
+
+    .login-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--gradient-primary);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 24px;
+        font-weight: 600;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .logo i {
+        font-size: 28px;
+        color: var(--accent-primary);
+        text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    .login-header h1 {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--fg-primary);
+        margin-bottom: 8px;
+    }
+
+    .login-header p {
+        color: var(--fg-secondary);
+        font-size: 16px;
+    }
+
+    .login-tabs {
+        display: flex;
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 24px;
+        position: relative;
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        color: var(--fg-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-transform: none;
+        min-width: auto;
+    }
+
+    .tab-btn.active {
+        background: var(--gradient-primary);
+        color: var(--bg-primary);
+        box-shadow: var(--shadow-neon);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--fg-primary);
+        background: var(--bg-tertiary);
+    }
+
+    .login-content {
+        position: relative;
+        min-height: 320px;
+    }
+
+    .auth-form {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+    }
+
+    .auth-form.active {
+        opacity: 1;
+        transform: translateX(0);
+        position: relative;
+        pointer-events: all;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        color: var(--fg-secondary);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group label i {
+        color: var(--accent-primary);
+        width: 16px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--fg-primary);
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1), var(--shadow-neon);
+        transform: translateY(-1px);
+    }
+
+    .form-group input::placeholder {
+        color: var(--fg-muted);
+    }
+
+    .error-message {
+        background: rgba(255, 51, 102, 0.1);
+        border: 1px solid rgba(255, 51, 102, 0.3);
+        border-radius: 8px;
+        padding: 12px 16px;
+        color: var(--accent-tertiary);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: shake 0.5s ease;
+    }
+
+    .auth-btn {
+        width: 100%;
+        padding: 16px 24px;
+        background: var(--gradient-primary);
+        border: none;
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--bg-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        text-transform: none;
+        min-width: auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-neon);
+    }
+
+    .auth-btn:active {
+        transform: translateY(0);
+    }
+
+    .demo-credentials {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-primary);
+    }
+
+    .demo-credentials h4 {
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--accent-secondary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+    }
+
+    .credentials-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .credential-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        border-radius: 10px;
+        padding: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .credential-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        transition: opacity 0.3s ease;
+        opacity: 0.6;
+    }
+
+    .credential-card.silver::before {
+        background: linear-gradient(90deg, #c0c0c0, #e8e8e8);
+    }
+
+    .credential-card.gold::before {
+        background: linear-gradient(90deg, #ffd700, #ffed4e);
+    }
+
+    .credential-card.elite::before {
+        background: var(--gradient-primary);
+    }
+
+    .credential-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .credential-card:hover::before {
+        opacity: 1;
+    }
+
+    .credential-card .tier-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: rgba(0, 255, 136, 0.1);
+        color: var(--accent-primary);
+    }
+
+    .credential-card h5 {
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--fg-primary);
+        margin-bottom: 4px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .credential-card p {
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--fg-secondary);
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    .tier-label {
+        display: inline-block;
+        background: rgba(0, 255, 136, 0.1);
+        color: var(--accent-primary);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Login Theme Selector */
+    .login-theme-selector {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .theme-options {
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .login-theme-selector .theme-option {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .login-theme-selector .theme-option::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .login-theme-selector .theme-option[data-theme="default"]::before {
+        background: linear-gradient(135deg, #00ff88, #00d4ff);
+    }
+
+    .login-theme-selector .theme-option[data-theme="cyberpunk"]::before {
+        background: linear-gradient(135deg, #00d4ff, #0099cc);
+    }
+
+    .login-theme-selector .theme-option[data-theme="matrix"]::before {
+        background: linear-gradient(135deg, #00ff41, #00cc33);
+    }
+
+    .login-theme-selector .theme-option[data-theme="purple"]::before {
+        background: linear-gradient(135deg, #da70d6, #9932cc);
+    }
+
+    .login-theme-selector .theme-option[data-theme="sunset"]::before {
+        background: linear-gradient(135deg, #ff8c00, #ff6347);
+    }
+
+    .login-theme-selector .theme-option:hover {
+        transform: scale(1.1);
+        border-color: var(--accent-primary);
+    }
+
+    .login-theme-selector .theme-option.active {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 10px var(--accent-primary);
+    }
+
+    @media (max-width: 600px) {
+        .login-box {
+            padding: 24px;
+            margin: 20px;
+        }
+        
+        .login-header h1 {
+            font-size: 24px;
+        }
+        
+        .logo {
+            font-size: 20px;
+        }
+        
+        .logo i {
+            font-size: 24px;
+        }
+        
+        .login-theme-selector {
+            top: 10px;
+            right: 10px;
+        }
+        
+        .theme-options {
+            padding: 6px;
+            gap: 6px;
+        }
+        
+        .login-theme-selector .theme-option {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .login-theme-selector .theme-option::before {
+            width: 12px;
+            height: 12px;
+        }
+    }
+</style>
+
+<script>
+    // Theme System for Login
+    function initLoginThemes() {
+        const themeOptions = document.querySelectorAll('.login-theme-selector .theme-option');
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'default';
+        applyLoginTheme(savedTheme);
+        
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const theme = option.dataset.theme;
+                applyLoginTheme(theme);
+                localStorage.setItem('theme', theme);
+            });
+        });
+    }
+    
+    function applyLoginTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        document.querySelectorAll('.login-theme-selector .theme-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        
+        document.querySelector(`.login-theme-selector [data-theme="${theme}"]`).classList.add('active');
+    }
+
+    function switchTab(tab) {
+        const signinForm = document.getElementById('signin-form');
+        const signupForm = document.getElementById('signup-form');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        
+        tabBtns.forEach(btn => btn.classList.remove('active'));
+        
+        if (tab === 'signin') {
+            document.querySelector('[onclick="switchTab(\'signin\')"]').classList.add('active');
+            signinForm.classList.add('active');
+            signupForm.classList.remove('active');
+        } else {
+            document.querySelector('[onclick="switchTab(\'signup\')"]').classList.add('active');
+            signupForm.classList.add('active');
+            signinForm.classList.remove('active');
+        }
+    }
+
+    function handleSignup() {
+        const username = document.getElementById('signup-username').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const referralCode = document.getElementById('referral-code').value.trim();
+        
+        const errorDiv = document.getElementById('signup-error');
+        const errorText = document.getElementById('signup-error-text');
+        
+        // Hide previous errors
+        errorDiv.style.display = 'none';
+        
+        if (!username || !email || !password || !confirmPassword || !referralCode) {
+            showSignupError('Please fill in all fields including referral code');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showSignupError('Passwords do not match');
+            return;
+        }
+        
+        if (password.length < 6) {
+            showSignupError('Password must be at least 6 characters long');
+            return;
+        }
+        
+        // Send signup request
+        fetch('/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password,
+                referral_code: referralCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Account created successfully! You can now sign in with your credentials.');
+                switchTab('signin');
+                // Auto-fill the username
+                document.getElementById('username').value = username;
+            } else {
+                showSignupError(data.error);
+            }
+        })
+        .catch(error => {
+            showSignupError('Network error. Please try again.');
+        });
+    }
+    
+    function showSignupError(message) {
+        const errorDiv = document.getElementById('signup-error');
+        const errorText = document.getElementById('signup-error-text');
+        errorText.textContent = message;
+        errorDiv.style.display = 'flex';
+    }
+
+    // Initialize login page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize theme system
+        initLoginThemes();
+        
+        // Auto-fill credentials when clicking on credential cards
+        const credentialCards = document.querySelectorAll('.credential-card');
+        
+        credentialCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const cardClass = this.classList[1]; // silver, gold, or elite
+                let username, password;
+                
+                switch(cardClass) {
+                    case 'silver':
+                        username = 'hey_silver';
+                        password = 'view_data';
+                        break;
+                    case 'gold':
+                        username = 'hey_gold';
+                        password = 'edit_data';
+                        break;
+                    case 'elite':
+                        username = 'hey_elite';
+                        password = 'elite_data';
+                        break;
+                }
+                
+                // Switch to sign in tab
+                switchTab('signin');
+                
+                // Fill in credentials
+                document.getElementById('username').value = username;
+                document.getElementById('password').value = password;
+                
+                // Add visual feedback
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    });
+</script>
+{% endblock %}
