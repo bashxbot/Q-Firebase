@@ -331,9 +331,9 @@ def index():
 def resale_system():
     if 'user_tier' not in session:
         return redirect(url_for('login'))
-    
+
     user_role = get_user_role(session.get('username', ''))
-    
+
     return render_template('resale_system.html',
                          tier=session['user_tier'],
                          user_role=user_role,
@@ -343,7 +343,7 @@ def resale_system():
 def profile():
     if 'user_tier' not in session:
         return redirect(url_for('login'))
-    
+
     return render_template('profile.html',
                          tier=session['user_tier'],
                          username=session.get('username', ''))
@@ -352,7 +352,7 @@ def profile():
 def admin_panel():
     if 'user_tier' not in session or not session.get('is_admin', False):
         return redirect(url_for('login'))
-    
+
     return render_template('admin_panel.html',
                          tier=session['user_tier'])
 
@@ -360,7 +360,7 @@ def admin_panel():
 def settings():
     if 'user_tier' not in session:
         return redirect(url_for('login'))
-    
+
     return render_template('settings.html',
                          tier=session['user_tier'])
 
@@ -813,49 +813,49 @@ def apply_changes():
 def add_child():
     if 'user_tier' not in session or session['user_tier'] == 'Silver Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Gold or Elite Edition required.'})
-    
+
     path = request.json.get('path', '')
     key = request.json.get('key', '').strip()
     value_str = request.json.get('value', '').strip()
-    
+
     try:
         parent_node = get_value_by_path(app_data['original_data'], path)
         new_data = copy.deepcopy(app_data['original_data'])
-        
+
         if isinstance(parent_node, dict):
             if not key:
                 return jsonify({'success': False, 'error': 'Key is required for object'})
             if key in parent_node:
                 return jsonify({'success': False, 'error': f'Key "{key}" already exists'})
-            
+
             try:
                 value = json.loads(value_str)
             except json.JSONDecodeError:
                 value = value_str
-            
+
             new_child_path = f"{path}/{key}" if path else key
             set_value_by_path(new_data, new_child_path, value)
-            
+
         elif isinstance(parent_node, list):
             try:
                 value = json.loads(value_str)
             except json.JSONDecodeError as e:
                 return jsonify({'success': False, 'error': f'Invalid JSON for array item: {e}'})
-            
+
             modifiable_parent = get_value_by_path(new_data, path)
             modifiable_parent.append(value)
         else:
             return jsonify({'success': False, 'error': 'Can only add children to objects or arrays'})
-        
+
         app_data['original_data'] = new_data
         tree_data = build_tree_structure(app_data['original_data'])
-        
+
         return jsonify({
             'success': True,
             'tree_data': tree_data,
             'message': f"Added child to /{path}. Click 'Apply Changes' to sync."
         })
-        
+
     except Exception as e:
         return jsonify({'success': False, 'error': f'Failed to add child: {e}'})
 
@@ -863,19 +863,19 @@ def add_child():
 def delete_node():
     if 'user_tier' not in session or session['user_tier'] == 'Silver Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Gold or Elite Edition required.'})
-    
+
     path = request.json.get('path', '')
-    
+
     try:
         app_data['original_data'] = delete_value_by_path(copy.deepcopy(app_data['original_data']), path)
         tree_data = build_tree_structure(app_data['original_data'])
-        
+
         return jsonify({
             'success': True,
             'tree_data': tree_data,
             'message': f"Node /{path} deleted. Click 'Apply Changes' to sync."
         })
-        
+
     except Exception as e:
         return jsonify({'success': False, 'error': f'Failed to delete node: {e}'})
 
@@ -883,41 +883,41 @@ def delete_node():
 def duplicate_node():
     if 'user_tier' not in session or session['user_tier'] == 'Silver Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Gold or Elite Edition required.'})
-    
+
     path = request.json.get('path', '')
     new_key = request.json.get('new_key', '').strip()
-    
+
     try:
         node_value = copy.deepcopy(get_value_by_path(app_data['original_data'], path))
         path_parts = path.split('/') if path else []
         parent_path = '/'.join(path_parts[:-1]) if len(path_parts) > 1 else ''
         parent_node = get_value_by_path(app_data['original_data'], parent_path)
         new_data = copy.deepcopy(app_data['original_data'])
-        
+
         if isinstance(parent_node, dict):
             if not new_key:
                 return jsonify({'success': False, 'error': 'New key is required for object'})
             if new_key in parent_node:
                 return jsonify({'success': False, 'error': f'Key "{new_key}" already exists'})
-            
+
             new_full_path = f"{parent_path}/{new_key}" if parent_path else new_key
             set_value_by_path(new_data, new_full_path, node_value)
-            
+
         elif isinstance(parent_node, list):
             modifiable_parent = get_value_by_path(new_data, parent_path)
             modifiable_parent.append(node_value)
         else:
             return jsonify({'success': False, 'error': 'Can only duplicate nodes within objects or arrays'})
-        
+
         app_data['original_data'] = new_data
         tree_data = build_tree_structure(app_data['original_data'])
-        
+
         return jsonify({
             'success': True,
             'tree_data': tree_data,
             'message': f"Duplicated node. Click 'Apply Changes' to sync."
         })
-        
+
     except Exception as e:
         return jsonify({'success': False, 'error': f'Failed to duplicate node: {e}'})
 
@@ -925,24 +925,24 @@ def duplicate_node():
 def push_item():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required.'})
-    
+
     url = request.json.get('url', '').strip()
     path = request.json.get('path', '')
     item_content_str = request.json.get('content', '').strip()
-    
+
     try:
         item_content = json.loads(item_content_str)
         full_url = f"{url.rstrip('/')}/{path}.json"
-        
+
         response = requests.post(full_url, json=item_content, timeout=10)
         response.raise_for_status()
         pushed_key = response.json().get("name", "N/A")
-        
+
         return jsonify({
             'success': True,
             'message': f"Pushed new item with key: {pushed_key}"
         })
-        
+
     except json.JSONDecodeError as e:
         return jsonify({'success': False, 'error': f'Invalid JSON content: {e}'})
     except Exception as e:
@@ -952,14 +952,14 @@ def push_item():
 def search():
     if 'user_tier' not in session:
         return jsonify({'success': False, 'error': 'Not authenticated'})
-    
+
     search_term = request.json.get('term', '').strip().lower()
-    
+
     if not search_term:
         return jsonify({'success': False, 'error': 'Please enter a search term'})
-    
+
     results = []
-    
+
     def search_recursive(data, path=""):
         if isinstance(data, dict):
             for key, value in data.items():
@@ -977,14 +977,14 @@ def search():
                     results.append({'path': current_path, 'key': f"[{i}]", 'match_type': 'value'})
                 if isinstance(value, (dict, list)):
                     search_recursive(value, current_path)
-    
+
     search_recursive(app_data['original_data'])
     app_data['search_results'] = results
     app_data['current_search_index'] = 0
-    
+
     if not results:
         return jsonify({'success': False, 'error': f'No occurrences of "{search_term}" found'})
-    
+
     return jsonify({
         'success': True,
         'results': results,
@@ -996,34 +996,34 @@ def search():
 def url_profiles():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required.'})
-    
+
     profiles = load_url_profiles()
-    
+
     if request.method == 'GET':
         return jsonify({'success': True, 'profiles': profiles})
-    
+
     elif request.method == 'POST':
         name = request.json.get('name', '').strip()
         url = request.json.get('url', '').strip()
-        
+
         if not name or not url:
             return jsonify({'success': False, 'error': 'Name and URL are required'})
-        
+
         if name in profiles:
             return jsonify({'success': False, 'error': f'Profile "{name}" already exists'})
-        
+
         profiles[name] = url
         if save_url_profiles(profiles):
             return jsonify({'success': True, 'message': f'URL profile "{name}" added'})
         else:
             return jsonify({'success': False, 'error': 'Failed to save URL profile'})
-    
+
     elif request.method == 'DELETE':
         name = request.json.get('name', '').strip()
-        
+
         if name not in profiles:
             return jsonify({'success': False, 'error': 'Profile not found'})
-        
+
         del profiles[name]
         if save_url_profiles(profiles):
             return jsonify({'success': True, 'message': f'URL profile "{name}" removed'})
@@ -1034,17 +1034,17 @@ def url_profiles():
 def save_data():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required.'})
-    
+
     if not app_data['original_data']:
         return jsonify({'success': False, 'error': 'No data to save'})
-    
+
     try:
         filename = f"firebase_data_{int(time.time())}.json"
         filepath = os.path.join('/tmp', filename)
-        
+
         with open(filepath, 'w') as f:
             json.dump(app_data['original_data'], f, indent=4)
-        
+
         return send_file(filepath, as_attachment=True, download_name=filename)
     except Exception as e:
         return jsonify({'success': False, 'error': f'Failed to save data: {e}'})
@@ -1053,16 +1053,16 @@ def save_data():
 def export_data():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition':
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required.'})
-    
+
     export_format = request.json.get('format', 'json').lower()
-    
+
     if not app_data['original_data']:
         return jsonify({'success': False, 'error': 'No data to export'})
-    
+
     try:
         filename = f"firebase_data_{int(time.time())}.{export_format}"
         filepath = os.path.join('/tmp', filename)
-        
+
         if export_format == 'json':
             with open(filepath, 'w') as f:
                 json.dump(app_data['original_data'], f, indent=4)
@@ -1070,12 +1070,12 @@ def export_data():
             if isinstance(app_data['original_data'], list) and all(isinstance(item, dict) for item in app_data['original_data']):
                 if not app_data['original_data']:
                     raise ValueError("Cannot export empty list to CSV.")
-                
+
                 all_keys = set()
                 for item in app_data['original_data']:
                     all_keys.update(item.keys())
                 headers = sorted(list(all_keys))
-                
+
                 with open(filepath, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.DictWriter(f, fieldnames=headers, extrasaction='ignore')
                     writer.writeheader()
@@ -1084,7 +1084,7 @@ def export_data():
                 raise TypeError("CSV export is only supported for a flat list of objects.")
         else:
             return jsonify({'success': False, 'error': 'Unsupported export format'})
-        
+
         return send_file(filepath, as_attachment=True, download_name=filename)
     except Exception as e:
         return jsonify({'success': False, 'error': f'Failed to export data: {e}'})
@@ -1093,14 +1093,14 @@ def export_data():
 def load_schema():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition' or not validate:
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required and jsonschema library needed.'})
-    
+
     if 'schema_file' not in request.files:
         return jsonify({'success': False, 'error': 'No schema file provided'})
-    
+
     file = request.files['schema_file']
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No file selected'})
-    
+
     try:
         schema_content = file.read().decode('utf-8')
         app_data['json_schema'] = json.loads(schema_content)
@@ -1112,13 +1112,13 @@ def load_schema():
 def validate_schema():
     if 'user_tier' not in session or session['user_tier'] != 'Elite Edition' or not validate:
         return jsonify({'success': False, 'error': 'Feature locked. Elite Edition required and jsonschema library needed.'})
-    
+
     if not app_data['json_schema']:
         return jsonify({'success': False, 'error': 'No schema loaded'})
-    
+
     if not app_data['original_data']:
         return jsonify({'success': False, 'error': 'No data to validate'})
-    
+
     try:
         validate(instance=app_data['original_data'], schema=app_data['json_schema'])
         return jsonify({'success': True, 'message': 'Data is valid against the loaded schema!'})
@@ -1132,21 +1132,21 @@ def validate_schema():
 def admin_users():
     if 'user_tier' not in session or not session.get('is_admin', False):
         return jsonify({'success': False, 'error': 'Admin access required'})
-    
+
     if request.method == 'GET':
         return jsonify({'success': True, 'users': ADMIN_DATA['users']})
-    
+
     elif request.method == 'POST':
         username = request.json.get('username', '').strip()
         password = request.json.get('password', '').strip()
         tier = request.json.get('tier', '')
-        
+
         if not username or not password:
             return jsonify({'success': False, 'error': 'Username and password required'})
-        
+
         if username in CREDENTIALS:
             return jsonify({'success': False, 'error': 'Username already exists'})
-        
+
         CREDENTIALS[username] = {"password": password, "tier": tier}
         ADMIN_DATA['users'].append({
             "username": username,
@@ -1154,47 +1154,47 @@ def admin_users():
             "status": "active",
             "email": f"{username}@demo.com"
         })
-        
+
         return jsonify({'success': True, 'message': f'User {username} created successfully'})
-    
+
     elif request.method == 'DELETE':
         username = request.json.get('username', '').strip()
-        
+
         if username not in CREDENTIALS:
             return jsonify({'success': False, 'error': 'User not found'})
-        
+
         del CREDENTIALS[username]
         ADMIN_DATA['users'] = [u for u in ADMIN_DATA['users'] if u['username'] != username]
-        
+
         return jsonify({'success': True, 'message': f'User {username} deleted successfully'})
 
 @app.route('/api/admin/resellers', methods=['GET', 'POST', 'DELETE'])
 def admin_resellers():
     if 'user_tier' not in session or not session.get('is_admin', False):
         return jsonify({'success': False, 'error': 'Admin access required'})
-    
+
     if request.method == 'GET':
         return jsonify({'success': True, 'resellers': ADMIN_DATA['resellers']})
-    
+
     elif request.method == 'POST':
         username = request.json.get('username', '').strip()
         package = request.json.get('package', '$25')
-        
+
         if not username:
             return jsonify({'success': False, 'error': 'Username is required'})
-        
+
         # Check if user exists in CREDENTIALS
         if username not in CREDENTIALS:
             return jsonify({'success': False, 'error': 'User not found'})
-        
+
         # Check if already a reseller
         reseller_exists = any(r['username'] == username for r in ADMIN_DATA['resellers'])
         if reseller_exists:
             return jsonify({'success': False, 'error': 'User is already a reseller'})
-        
+
         # Get package details
         package_info = ADMIN_DATA['reseller_packages'].get(package, {'credits': 25, 'price': 25})
-        
+
         # Add as reseller
         ADMIN_DATA['resellers'].append({
             "username": username,
@@ -1206,38 +1206,38 @@ def admin_resellers():
             "approved_date": datetime.now().isoformat(),
             "package": package
         })
-        
+
         return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
-    
+
     elif request.method == 'DELETE':
         username = request.json.get('username', '').strip()
-        
+
         # Remove from resellers
         ADMIN_DATA['resellers'] = [r for r in ADMIN_DATA['resellers'] if r['username'] != username]
-        
+
         return jsonify({'success': True, 'message': f'Reseller {username} removed successfully'})
 
 @app.route('/api/admin/referrals', methods=['GET', 'POST'])
 def admin_referrals():
     if 'user_tier' not in session or not session.get('is_admin', False):
         return jsonify({'success': False, 'error': 'Admin access required'})
-    
+
     if request.method == 'GET':
         return jsonify({'success': True, 'referrals': ADMIN_DATA['referrals']})
-    
+
     elif request.method == 'POST':
         code = request.json.get('code', '').strip()
         limit = request.json.get('limit', 100)
         tier = request.json.get('tier', 'Silver Edition')
-        
+
         if not code:
             return jsonify({'success': False, 'error': 'Referral code required'})
-        
+
         # Check if code already exists
         for ref in ADMIN_DATA['referrals']:
             if ref['code'] == code:
                 return jsonify({'success': False, 'error': 'Referral code already exists'})
-        
+
         ADMIN_DATA['referrals'].append({
             "code": code,
             "used": 0,
@@ -1247,16 +1247,16 @@ def admin_referrals():
             "creator": "admin",
             "commission_rate": 10
         })
-        
+
         return jsonify({'success': True, 'message': f'Referral code {code} created successfully'})
 
 @app.route('/api/profile', methods=['GET', 'PUT'])
 def user_profile():
     if 'user_tier' not in session:
         return jsonify({'success': False, 'error': 'Not authenticated'})
-    
+
     username = session.get('username', 'demo_user')
-    
+
     if request.method == 'GET':
         # Find user in admin data or create default profile
         user_data = None
@@ -1264,7 +1264,7 @@ def user_profile():
             if user['username'] == username:
                 user_data = user
                 break
-        
+
         if not user_data:
             user_data = {
                 "username": username,
@@ -1272,35 +1272,35 @@ def user_profile():
                 "email": f"{username}@demo.com",
                 "api_key": "fdb_" + username + "_demo_key"
             }
-        
+
         return jsonify({'success': True, 'profile': user_data})
-    
+
     elif request.method == 'PUT':
         email = request.json.get('email', '').strip()
         password = request.json.get('password', '').strip()
-        
+
         # Update user data in admin storage
         for user in ADMIN_DATA['users']:
             if user['username'] == username:
                 if email:
                     user['email'] = email
                 break
-        
+
         # Update password in credentials if provided
         if password and username in CREDENTIALS:
             CREDENTIALS[username]['password'] = password
-        
+
         return jsonify({'success': True, 'message': 'Profile updated successfully'})
 
 @app.route('/api/theme', methods=['GET', 'POST'])
 def user_theme():
     if 'user_tier' not in session:
         return jsonify({'success': False, 'error': 'Not authenticated'})
-    
+
     if request.method == 'GET':
         theme = session.get('theme', 'default')
         return jsonify({'success': True, 'theme': theme})
-    
+
     elif request.method == 'POST':
         theme = request.json.get('theme', 'default')
         session['theme'] = theme
@@ -1428,6 +1428,19 @@ def admin_add_reseller():
     )
 
     return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
+
+@app.route('/api/apply_settings', methods=['POST'])
+def apply_settings_route():
+    if 'user_tier' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    url = request.json.get('url', '').strip()
+    if not url or "your-project-id" in url:
+        return jsonify({'success': False, 'error': 'Please enter a valid Firebase URL'})
+
+    session['firebase_url'] = url  # Store the URL in the session
+
+    return jsonify({'success': True, 'message': 'Firebase URL saved successfully!'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
