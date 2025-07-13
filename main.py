@@ -333,7 +333,8 @@ def index():
                          has_schema=app_data['json_schema'] is not None,
                          has_validate=validate is not None,
                          user_role=user_role,
-                         pricelist=PRICELIST)
+                         pricelist=PRICELIST,
+                         is_admin=session.get('is_admin', False))
 
 @app.route('/resale')
 def resale_system():
@@ -345,7 +346,8 @@ def resale_system():
     return render_template('resale_system.html',
                          tier=session['user_tier'],
                          user_role=user_role,
-                         pricelist=PRICELIST)
+                         pricelist=PRICELIST,
+                         is_admin=session.get('is_admin', False))
 
 @app.route('/profile')
 def profile():
@@ -361,8 +363,11 @@ def admin_panel():
     if 'user_tier' not in session or not session.get('is_admin', False):
         return redirect(url_for('login'))
     
+    section = request.args.get('section', 'dashboard')
+    
     return render_template('admin_panel.html',
-                         tier=session['user_tier'])
+                         tier=session['user_tier'],
+                         section=section)
 
 @app.route('/settings')
 def settings():

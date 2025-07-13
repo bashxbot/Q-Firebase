@@ -1129,6 +1129,34 @@
             border-radius: 3px;
             box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
         }
+
+        .sidebar-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .sidebar-section-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-section .sidebar-nav {
+            margin-top: 12px;
+        }
+
+        .sidebar-section .sidebar-nav a {
+            padding: 10px 16px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -1166,6 +1194,40 @@
                 <span class="notification-dot" id="messagesDot" style="display: none;"></span>
             </a></li>
         </ul>
+
+        <!-- Admin Panel Section -->
+        <div class="sidebar-section" id="adminSection" style="display: none;">
+            <h4 class="sidebar-section-title">
+                <i class="fas fa-crown"></i>
+                Admin Panel
+            </h4>
+            <ul class="sidebar-nav">
+                <li><a href="/admin">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a></li>
+                <li><a href="#" onclick="openAdminFunction('users')">
+                    <i class="fas fa-users"></i>
+                    User Management
+                </a></li>
+                <li><a href="#" onclick="openAdminFunction('resellers')">
+                    <i class="fas fa-store"></i>
+                    Reseller Management
+                </a></li>
+                <li><a href="#" onclick="openAdminFunction('referrals')">
+                    <i class="fas fa-gift"></i>
+                    Referral Codes
+                </a></li>
+                <li><a href="#" onclick="openAdminFunction('notifications')">
+                    <i class="fas fa-broadcast-tower"></i>
+                    Send Notifications
+                </a></li>
+                <li><a href="#" onclick="openAdminFunction('analytics')">
+                    <i class="fas fa-chart-line"></i>
+                    Analytics
+                </a></li>
+            </ul>
+        </div>
     </nav>
         <div class="theme-selector">
             <h4>Theme</h4>
@@ -1435,6 +1497,27 @@
 
         // Simulate new message
         //setTimeout(showMessagesDot, 8000);
+
+        // Admin Panel Functions
+        function openAdminFunction(functionName) {
+            window.location.href = `/admin?section=${functionName}`;
+            toggleSidebar();
+        }
+
+        // Show/hide admin section based on user role
+        function checkAdminAccess() {
+            // This will be called from the main pages to show/hide admin section
+            const adminSection = document.getElementById('adminSection');
+            if (adminSection) {
+                // Check if user is admin (this would be set by the backend)
+                const isAdmin = document.body.dataset.isAdmin === 'true';
+                adminSection.style.display = isAdmin ? 'block' : 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminAccess();
+        });
     </script>
 </body>
 </html>

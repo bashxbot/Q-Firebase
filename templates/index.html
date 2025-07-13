@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script>
+document.body.dataset.isAdmin = '{{ is_admin|lower }}';
+</script>
 <!-- Menu Toggle -->
 <button class="menu-toggle" onclick="toggleSidebar()">
     <i class="fas fa-bars"></i>
