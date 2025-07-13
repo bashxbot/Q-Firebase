@@ -66,7 +66,14 @@ ADMIN_DATA = {
         {"username": "pending_user", "request_date": "2024-01-15", "status": "pending", "message": "I want to become a reseller"}
     ],
     'chats': [],
-    'sales': []
+    'sales': [],
+    'notifications': [],
+    'reseller_packages': {
+        '$25': {'credits': 25, 'price': 25},
+        '$50': {'credits': 50, 'price': 50},
+        '$100': {'credits': 100, 'price': 100},
+        '$200': {'credits': 200, 'price': 200}
+    }
 }
 
 # Load pricelist
@@ -286,6 +293,21 @@ def get_user_role(username):
 
     return "user"
 
+def create_notification(recipient, title, message, notification_type, metadata=None):
+    """Create a new notification"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "recipient": recipient,
+        "title": title,
+        "message": message,
+        "type": notification_type,
+        "metadata": metadata or {},
+        "read": False,
+        "timestamp": datetime.now().isoformat()
+    }
+    ADMIN_DATA['notifications'].append(notification)
+    return notification
+
 @app.route('/')
 def index():
     if 'user_tier' not in session:
@@ -401,12 +423,12 @@ def signup():
 
     # Add commission to referrer if it's a reseller
     for reseller in ADMIN_DATA['resellers']:
-        if reseller['username'] == referral['creator']:
+        if reseller['username'] == referral.get('creator', 'admin'):
             commission = PRICELIST.get(tier.lower().split()[0], {}).get('30', {}).get('user_price', 0) * (referral['commission_rate'] / 100)
             reseller['earnings']['pending'] += commission
             ADMIN_DATA['sales'].append({
                 "id": str(uuid.uuid4()),
-                "referrer": referral['creator'],
+                "referrer": referral.get('creator', 'admin'),
                 "user": username,
                 "tier": tier,
                 "commission": commission,
@@ -447,6 +469,15 @@ def request_reseller():
         "status": "pending",
         "message": message
     })
+
+    # Create notification for admin
+    create_notification(
+        "admin",
+        "New Reseller Request",
+        f"User {username} has requested reseller access",
+        "reseller_request",
+        {"username": username, "message": message}
+    )
 
     return jsonify({'success': True, 'message': 'Reseller request submitted successfully'})
 
@@ -604,6 +635,15 @@ def send_chat_message():
     }
 
     ADMIN_DATA['chats'].append(chat_message)
+
+    # Create notification for recipient
+    create_notification(
+        recipient,
+        f"New message from {sender}",
+        f"{message[:50]}{'...' if len(message) > 50 else ''}",
+        "message",
+        {"sender": sender, "chat_id": chat_message["id"]}
+    )
 
     return jsonify({'success': True, 'message': 'Message sent successfully'})
 
@@ -1214,6 +1254,129 @@ def user_theme():
         theme = request.json.get('theme', 'default')
         session['theme'] = theme
         return jsonify({'success': True, 'message': 'Theme updated'})
+
+# Notification API Routes
+@app.route('/api/notifications')
+def get_notifications():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+    user_notifications = [n for n in ADMIN_DATA['notifications'] if n['recipient'] == username or n['recipient'] == 'all']
+    unread_count = len([n for n in user_notifications if not n['read']])
+
+    # Sort by timestamp (newest first)
+    user_notifications.sort(key=lambda x: x['timestamp'], reverse=True)
+
+    return jsonify({
+        'success': True,
+        'notifications': user_notifications[:50],  # Limit to 50 recent notifications
+        'unread_count': unread_count
+    })
+
+@app.route('/api/notifications/<notification_id>')
+def get_notification(notification_id):
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+    notification = next((n for n in ADMIN_DATA['notifications'] 
+                        if n['id'] == notification_id and 
+                        (n['recipient'] == username or n['recipient'] == 'all')), None)
+
+    if not notification:
+        return jsonify({'success': False, 'error': 'Notification not found'})
+
+    return jsonify({'success': True, 'notification': notification})
+
+@app.route('/api/notifications/read', methods=['POST'])
+def mark_notification_read():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+    notification_id = request.json.get('notification_id')
+
+    for notification in ADMIN_DATA['notifications']:
+        if (notification['id'] == notification_id and 
+            (notification['recipient'] == username or notification['recipient'] == 'all')):
+            notification['read'] = True
+            break
+
+    return jsonify({'success': True, 'message': 'Notification marked as read'})
+
+@app.route('/api/notifications/mark_all_read', methods=['POST'])
+def mark_all_notifications_read():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+
+    for notification in ADMIN_DATA['notifications']:
+        if notification['recipient'] == username or notification['recipient'] == 'all':
+            notification['read'] = True
+
+    return jsonify({'success': True, 'message': 'All notifications marked as read'})
+
+@app.route('/api/notifications/clear', methods=['POST'])
+def clear_notifications():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+
+    username = session['username']
+
+    ADMIN_DATA['notifications'] = [n for n in ADMIN_DATA['notifications'] 
+                                  if n['recipient'] != username and n['recipient'] != 'all']
+
+    return jsonify({'success': True, 'message': 'Notifications cleared'})
+
+# Admin route to add reseller with credits
+@app.route('/api/admin/add_reseller', methods=['POST'])
+def admin_add_reseller():
+    if not session.get('is_admin', False):
+        return jsonify({'success': False, 'error': 'Admin access required'})
+
+    username = request.json.get('username', '')
+    package = request.json.get('package', '$25')
+
+    if not username:
+        return jsonify({'success': False, 'error': 'Username is required'})
+
+    # Check if user exists
+    user_exists = any(u['username'] == username for u in ADMIN_DATA['users'])
+    if not user_exists:
+        return jsonify({'success': False, 'error': 'User not found'})
+
+    # Check if already a reseller
+    reseller_exists = any(r['username'] == username for r in ADMIN_DATA['resellers'])
+    if reseller_exists:
+        return jsonify({'success': False, 'error': 'User is already a reseller'})
+
+    # Get package details
+    package_info = ADMIN_DATA['reseller_packages'].get(package, {'credits': 25, 'price': 25})
+
+    # Add as reseller
+    ADMIN_DATA['resellers'].append({
+        "username": username,
+        "status": "approved",
+        "commission_rate": 10,
+        "credits": package_info['credits'],
+        "earnings": {"pending": 0, "paid": 0},
+        "platforms": [],
+        "approved_date": datetime.now().isoformat(),
+        "package": package
+    })
+
+    # Create notification for user
+    create_notification(
+        username,
+        "Reseller Access Granted",
+        f"You have been granted reseller access with {package_info['credits']} credits",
+        "system",
+        {"package": package, "credits": package_info['credits']}
+    )
+
+    return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

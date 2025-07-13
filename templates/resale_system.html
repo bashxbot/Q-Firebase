@@ -8,6 +8,12 @@
             <i class="fas fa-store"></i>
             Resale System
         </h2>
+        <div class="resale-search">
+            <input type="text" id="resellerSearch" placeholder="Search resellers..." onkeyup="searchResellers()">
+            <button onclick="searchResellers()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
     </div>
 
     <!-- User View -->
@@ -43,10 +49,18 @@
             </button>
         </div>
 
+        <div class="best-resellers">
+            <h3>
+                <i class="fas fa-star"></i>
+                Top Resellers
+            </h3>
+            <div id="bestResellersList"></div>
+        </div>
+
         <div class="reseller-list">
             <h3>
                 <i class="fas fa-users"></i>
-                Chat with Resellers
+                All Resellers
             </h3>
             <div id="resellersList"></div>
         </div>
@@ -233,6 +247,7 @@ function loadResaleData() {
     .then(data => {
         if (data.success) {
             displayResellers(data.resellers);
+            displayBestResellers(data.resellers);
         }
     });
 
@@ -256,18 +271,70 @@ function displayResellers(resellers) {
         <div class="reseller-item">
             <div class="reseller-info">
                 <h4>${reseller.username}</h4>
+                <div class="reseller-stats">
+                    <span class="stat">⭐ ${reseller.rating || '5.0'}</span>
+                    <span class="stat">💰 ${reseller.sales || '0'} sales</span>
+                    <span class="stat">🏆 ${reseller.rank || 'New'}</span>
+                </div>
                 <div class="platforms">
                     ${reseller.platforms.map(platform => 
-                        `<i class="fab fa-${platform}" title="${platform}"></i>`
+                        `<i class="fab fa-${platform}" title="${platform}" onclick="openSocialMedia('${reseller.username}', '${platform}')"></i>`
                     ).join('')}
                 </div>
             </div>
+            <div class="reseller-actions">
+                <button onclick="openChat('${reseller.username}')" class="btn-secondary">
+                    <i class="fas fa-comments"></i>
+                    Message
+                </button>
+                <button onclick="viewResellerProfile('${reseller.username}')" class="btn-secondary">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayBestResellers(resellers) {
+    const container = document.getElementById('bestResellersList');
+    if (!container) return;
+
+    // Sort by rating and sales
+    const topResellers = resellers
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 3);
+
+    container.innerHTML = topResellers.map((reseller, index) => `
+        <div class="best-reseller-item">
+            <div class="rank-badge">#${index + 1}</div>
+            <div class="reseller-info">
+                <h4>${reseller.username}</h4>
+                <div class="rating">⭐ ${reseller.rating || '5.0'}</div>
+                <div class="sales">${reseller.sales || '0'} sales</div>
+            </div>
             <button onclick="openChat('${reseller.username}')" class="btn-secondary">
                 <i class="fas fa-comments"></i>
-                Message
+                Chat
             </button>
         </div>
     `).join('');
+}
+
+function searchResellers() {
+    const searchTerm = document.getElementById('resellerSearch').value.toLowerCase();
+    // Implementation would filter resellers list
+    console.log('Searching for:', searchTerm);
+}
+
+function openSocialMedia(username, platform) {
+    // This would open the reseller's social media profile
+    alert(`Opening ${platform} profile for ${username}`);
+}
+
+function viewResellerProfile(username) {
+    // This would show detailed reseller profile
+    alert(`Viewing profile for ${username}`);
 }
 
 function displayResellerDashboard(dashboard) {
@@ -702,6 +769,113 @@ document.addEventListener('DOMContentLoaded', function() {
     flex: 1;
 }
 
+/* Search Styles */
+.resale-search {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.resale-search input {
+    flex: 1;
+}
+
+/* Best Resellers */
+.best-resellers {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 24px;
+}
+
+.best-reseller-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.rank-badge {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-primary);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* Enhanced Reseller Items */
+.reseller-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.reseller-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+.reseller-stats {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.stat {
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.platforms i {
+    cursor: pointer;
+    margin-right: 8px;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.platforms i:hover {
+    transform: scale(1.2);
+    color: var(--accent-primary);
+}
+
+.reseller-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rating {
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.sales {
+    color: var(--accent-primary);
+    font-size: 14px;
+}
+
 @media (max-width: 768px) {
     .resale-content {
         grid-template-columns: 1fr;
@@ -713,6 +887,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .resale-tabs {
         flex-direction: column;
+    }
+
+    .reseller-item {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .reseller-actions {
+        justify-content: center;
+    }
+
+    .best-reseller-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .resale-search {
+        margin: 16px 0;
     }
 }
 </style>

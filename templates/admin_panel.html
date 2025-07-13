@@ -14,17 +14,21 @@
             <i class="fas fa-users"></i>
             User Management
         </button>
+        <button class="admin-tab" onclick="switchAdminTab('resellers')">
+            <i class="fas fa-store"></i>
+            Reseller Management
+        </button>
         <button class="admin-tab" onclick="switchAdminTab('referrals')">
             <i class="fas fa-gift"></i>
             Referral Codes
         </button>
+        <button class="admin-tab" onclick="switchAdminTab('notifications')">
+            <i class="fas fa-bell"></i>
+            Notifications
+        </button>
         <button class="admin-tab" onclick="switchAdminTab('analytics')">
             <i class="fas fa-chart-line"></i>
             Analytics
-        </button>
-        <button class="admin-tab" onclick="switchAdminTab('system')">
-            <i class="fas fa-server"></i>
-            System Settings
         </button>
     </div>
 
@@ -53,6 +57,36 @@
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+     <!-- Reseller Management Tab -->
+    <div id="resellers-tab" class="admin-tab-content">
+        <div class="admin-section">
+            <div class="section-header">
+                <h3>
+                    <i class="fas fa-store"></i>
+                    Reseller Management
+                </h3>
+                <button onclick="showAddResellerModal()" class="admin-btn">
+                    <i class="fas fa-plus"></i>
+                    Add Reseller
+                </button>
+            </div>
+            <div class="resellers-table">
+                <table id="resellersTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Credits</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resellersTableBody">
                     </tbody>
                 </table>
             </div>
@@ -90,6 +124,20 @@
         </div>
     </div>
 
+     <!-- Notifications Tab -->
+    <div id="notifications-tab" class="admin-tab-content">
+        <div class="admin-section">
+            <h3>
+                <i class="fas fa-bell"></i>
+                Notifications
+            </h3>
+            <div class="notifications-list">
+                <!-- Placeholder for notifications -->
+                <p>No new notifications.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Analytics Tab -->
     <div id="analytics-tab" class="admin-tab-content">
         <div class="admin-section">
@@ -119,40 +167,7 @@
     </div>
 
     <!-- System Settings Tab -->
-    <div id="system-tab" class="admin-tab-content">
-        <div class="admin-section">
-            <h3>
-                <i class="fas fa-cog"></i>
-                System Configuration
-            </h3>
-            <div class="system-settings">
-                <div class="setting-item">
-                    <label>Maintenance Mode:</label>
-                    <input type="checkbox" id="maintenanceMode">
-                </div>
-                <div class="setting-item">
-                    <label>Registration Enabled:</label>
-                    <input type="checkbox" id="registrationEnabled" checked>
-                </div>
-                <div class="setting-item">
-                    <label>Default User Tier:</label>
-                    <select id="defaultTier">
-                        <option value="Silver Edition">Silver Edition</option>
-                        <option value="Gold Edition">Gold Edition</option>
-                        <option value="Elite Edition">Elite Edition</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label>Session Timeout (minutes):</label>
-                    <input type="number" id="sessionTimeout" value="60" min="5" max="1440">
-                </div>
-            </div>
-            <button onclick="saveSystemSettings()" class="admin-btn">
-                <i class="fas fa-save"></i>
-                Save Settings
-            </button>
-        </div>
-    </div>
+    <!-- Removed System Settings Tab as requested -->
 </div>
 
 <!-- Modals -->
@@ -184,6 +199,42 @@
                 Add User
             </button>
             <button onclick="closeModal('addUserModal')" class="btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="addResellerModal" class="modal">
+    <div class="modal-content">
+        <h3>
+            <i class="fas fa-store"></i>
+            Add New Reseller
+        </h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="newResellerUsername" placeholder="Enter username...">
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" id="newResellerPassword" placeholder="Enter password...">
+        </div>
+        <div class="form-group">
+            <label>Credits:</label>
+            <select id="newResellerCredits">
+                <option value="25">$25</option>
+                <option value="50">$50</option>
+                <option value="100">$100</option>
+                <option value="200">$200</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button onclick="addReseller()">
+                <i class="fas fa-plus"></i>
+                Add Reseller
+            </button>
+            <button onclick="closeModal('addResellerModal')" class="btn-secondary">
                 <i class="fas fa-times"></i>
                 Cancel
             </button>
@@ -236,8 +287,12 @@ function switchAdminTab(tab) {
 
     if (tab === 'users') {
         loadUsers();
+    } else if (tab === 'resellers') {
+        loadResellers();
     } else if (tab === 'referrals') {
         loadReferrals();
+    } else if (tab === 'notifications') {
+        loadNotifications();
     } else if (tab === 'analytics') {
         loadAnalytics();
     }
@@ -266,6 +321,35 @@ function displayUsers(users) {
                     <i class="fas fa-edit"></i>
                 </button>
                 <button onclick="deleteUser('${user.username}')" class="btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function loadResellers() {
+    fetch('/api/admin/resellers')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayResellers(data.resellers);
+        }
+    });
+}
+
+function displayResellers(resellers) {
+    const tbody = document.getElementById('resellersTableBody');
+    tbody.innerHTML = resellers.map(reseller => `
+        <tr>
+            <td>${reseller.username}</td>
+            <td>${reseller.credits}</td>
+            <td><span class="status-badge ${reseller.status}">${reseller.status}</span></td>
+            <td>
+                <button onclick="editReseller('${reseller.username}')" class="btn-sm btn-secondary">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteReseller('${reseller.username}')" class="btn-sm btn-danger">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -303,6 +387,12 @@ function displayReferrals(referrals) {
     `).join('');
 }
 
+function loadNotifications() {
+    // Fetch notifications from API endpoint and display them
+    // This is a placeholder function
+    console.log('Loading notifications...');
+}
+
 function loadAnalytics() {
     // Simulate analytics data loading
     document.getElementById('totalUsers').textContent = '1,234';
@@ -313,6 +403,10 @@ function loadAnalytics() {
 
 function showAddUserModal() {
     showModal('addUserModal');
+}
+
+function showAddResellerModal() {
+    showModal('addResellerModal');
 }
 
 function addUser() {
@@ -342,6 +436,33 @@ function addUser() {
     });
 }
 
+function addReseller() {
+    const username = document.getElementById('newResellerUsername').value.trim();
+    const password = document.getElementById('newResellerPassword').value.trim();
+    const credits = document.getElementById('newResellerCredits').value;
+
+    if (!username || !password) {
+        alert('Username and password are required');
+        return;
+    }
+
+    fetch('/api/admin/resellers', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password, credits})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeModal('addResellerModal');
+            loadResellers();
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
 function editUser(username) {
     alert(`Edit user functionality for ${username} coming soon!`);
 }
@@ -362,6 +483,17 @@ function deleteUser(username) {
                 alert(data.error);
             }
         });
+    }
+}
+
+function editReseller(username) {
+    alert(`Edit reseller functionality for ${username} coming soon!`);
+}
+
+function deleteReseller(username) {
+    if (confirm(`Are you sure you want to delete reseller ${username}?`)) {
+        // Implement delete reseller functionality here
+        alert('Delete reseller functionality coming soon!');
     }
 }
 
@@ -406,10 +538,6 @@ function deleteReferral(code) {
     }
 }
 
-function saveSystemSettings() {
-    alert('Save system settings functionality coming soon!');
-}
-
 function showModal(modalId) {
     document.getElementById(modalId).style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -423,6 +551,7 @@ function closeModal(modalId) {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     loadUsers();
+    loadResellers();
 });
 </script>
 
@@ -534,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: var(--shadow-neon);
 }
 
-.users-table, .referrals-table {
+.users-table, .resellers-table, .referrals-table {
     overflow-x: auto;
 }
 
@@ -635,26 +764,6 @@ th {
     color: var(--fg-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.system-settings {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.setting-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.setting-item label {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
-    color: var(--fg-secondary);
-    min-width: 200px;
 }
 
 @media (max-width: 768px) {

@@ -249,26 +249,61 @@
     </div>
 </div>
 
-<!-- Resale System Modals -->
-<div id="resellerRequestModal" class="modal">
-    <div class="modal-content">
-        <h3>
-            <i class="fas fa-user-plus"></i>
-            Request Reseller Access
-        </h3>
-        <div class="form-group">
-            <label>Why do you want to become a reseller?</label>
-            <textarea id="resellerMessage" rows="4" placeholder="Tell us about your motivation and experience..."></textarea>
-        </div>
-        <div class="modal-actions">
-            <button onclick="submitResellerRequest()">
-                <i class="fas fa-paper-plane"></i>
-                Submit Request
-            </button>
-            <button onclick="closeModal('resellerRequestModal')" class="btn-secondary">
+<!-- Notifications Modal -->
+<div id="notificationsModal" class="modal">
+    <div class="modal-content notifications-modal">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-bell"></i>
+                Notifications
+            </h3>
+            <button onclick="closeModal('notificationsModal')" class="modal-close">
                 <i class="fas fa-times"></i>
-                Cancel
             </button>
+        </div>
+        <div class="notifications-content">
+            <div class="notifications-actions">
+                <button onclick="markAllAsRead()" class="btn-secondary">
+                    <i class="fas fa-check"></i>
+                    Mark All Read
+                </button>
+                <button onclick="clearNotifications()" class="btn-secondary">
+                    <i class="fas fa-trash"></i>
+                    Clear All
+                </button>
+            </div>
+            <div id="notificationsList" class="notifications-list"></div>
+        </div>
+    </div>
+</div>
+
+<div id="createReferralModal" class="modal"></div>
+
+<div id="customDialog" class="modal">
+    <div class="modal-content custom-dialog">
+        <div class="dialog-header">
+            <h3 id="dialogTitle">Confirm</h3>
+        </div>
+        <div class="dialog-content">
+            <p id="dialogMessage">Are you sure?</p>
+        </div>
+        <div class="dialog-actions">
+            <button id="dialogConfirm" onclick="handleDialogConfirm()">Confirm</button>
+            <button id="dialogCancel" onclick="closeModal('customDialog')" class="btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="customAlert" class="modal">
+    <div class="modal-content custom-alert">
+        <div class="alert-header">
+            <h3 id="alertTitle">Notice</h3>
+        </div>
+        <div class="alert-content">
+            <p id="alertMessage">Message</p>
+        </div>
+        <div class="alert-actions">
+            <button onclick="closeModal('customAlert')">OK</button>
         </div>
     </div>
 </div>
@@ -841,6 +876,105 @@
     opacity: 1;
 }
 
+/* Styles for Notifications Modal */
+.notifications-modal {
+    width: 90%;
+    max-width: 500px;
+}
+
+.notifications-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.notifications-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.notifications-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--fg-primary);
+}
+
+.notification-item.unread {
+    background: var(--glass-bg);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    font-size: 0.8em;
+    color: var(--fg-secondary);
+}
+
+/* Styles for Custom Dialog */
+.custom-dialog {
+    width: 90%;
+    max-width: 400px;
+}
+
+.custom-dialog .dialog-header {
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.custom-dialog .dialog-content {
+    margin-bottom: 24px;
+    color: var(--fg-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.custom-dialog .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+/* Styles for Custom Alert */
+.custom-alert {
+    width: 90%;
+    max-width: 400px;
+}
+
+.custom-alert .alert-header {
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.custom-alert .alert-content {
+    margin-bottom: 24px;
+    color: var(--fg-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.custom-alert .alert-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 @media (max-width: 768px) {
     .resale-content {
         grid-template-columns: 1fr;
@@ -907,7 +1041,7 @@ function renderTree(data, container = null, indent = 0, parentPath = '') {
             nodeContent.appendChild(spacer);
         }
 
-        const icon = document.createElement('i');
+                const icon = document.createElement('i');
         icon.className = node.type === 'container' ? 'fas fa-folder tree-icon' : 'fas fa-key tree-icon';
         icon.style.marginRight = '8px';
         icon.style.color = 'var(--accent-secondary)';
@@ -989,22 +1123,22 @@ function enableNodeActions(enable) {
 
 // New Window Functions
 function openResaleSystem() {
-    window.open('/resale', 'ResaleSystem', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    window.open('/resale', '_blank');
     closeSidebar();
 }
 
 function openProfile() {
-    window.open('/profile', 'Profile', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    window.open('/profile', '_blank');
     closeSidebar();
 }
 
 function openAdminPanel() {
-    window.open('/admin', 'AdminPanel', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+    window.open('/admin', '_blank');
     closeSidebar();
 }
 
 function openSettings() {
-    window.open('/settings', 'Settings', 'width=1000,height=700,scrollbars=yes,resizable=yes');
+    window.open('/settings', '_blank');
     closeSidebar();
 }
 
@@ -1228,17 +1362,6 @@ function applySettings() {
     const settings = {
         theme: document.getElementById('themeSelect').value,
         fontSize: document.getElementById('fontSizeSelect').value,
-        animationSpeed: document.getElementById('animationSpeed').value,
-        autoSave: document.getElementById('autoSave').checked,
-        syntaxHighlight: document.getElementById('syntaxHighlight').checked,
-        lineNumbers: document.getElementById('lineNumbers').checked,
-        wordWrap: document.getElementById('wordWrap').checked,
-        desktopNotifications: document.getElementById('desktopNotifications').checked,
-        soundEffects: document.getElementById('soundEffects').checked,
-        chatNotifications: document.getElementById('chatNotifications').checked,
-        debugMode: document.getElementById('debugMode').checked,
-        devConsole: document.getElementById('devConsole').checked,
-        experimentalFeatures: document.getElementById('experimentalFeatures').checked
     };
 
     localStorage.setItem('userSettings', JSON.stringify(settings));
@@ -1247,10 +1370,12 @@ function applySettings() {
 }
 
 function resetSettings() {
-    if (confirm('Reset all settings to default?')) {
-        localStorage.removeItem('userSettings');
-        location.reload();
-    }
+    customConfirm('Reset Settings', 'Reset all settings to default?', (confirmed) => {
+        if (confirmed) {
+            localStorage.removeItem('userSettings');
+            location.reload();
+        }
+    });
 }
 
 function exportSettings() {
@@ -1289,10 +1414,92 @@ function importSettings() {
     input.click();
 }
 
-// Keep all existing functions and add proper initialization
+function loadNotifications() {
+    fetch('/api/notifications')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayNotifications(data.notifications);
+        }
+    });
+}
+
+function displayNotifications(notifications) {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    container.innerHTML = notifications.map(notif => `
+        <div class="notification-item ${notif.is_read ? '' : 'unread'}">
+            <div class="notification-header">
+                <span>${notif.title}</span>
+                <span class="notification-time">${new Date(notif.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div class="notification-content">
+                ${notif.message}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Custom Dialog Functions
+let dialogCallback = null;
+
+function customAlert(title, message) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    showModal('customAlert');
+}
+
+function customConfirm(title, message, callback) {
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMessage').textContent = message;
+    dialogCallback = callback;
+    showModal('customDialog');
+}
+
+function handleDialogConfirm() {
+    if (dialogCallback) {
+        dialogCallback(true);
+        dialogCallback = null;
+    }
+    closeModal('customDialog');
+}
+
+function markAllAsRead() {
+    fetch('/api/notifications/mark_all_read', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+        }
+    });
+}
+
+function clearNotifications() {
+    customConfirm('Clear Notifications', 'Are you sure you want to clear all notifications?', (confirmed) => {
+        if (confirmed) {
+            fetch('/api/notifications/clear', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotifications();
+                }
+            });
+        }
+    });
+}
+
+// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     renderTree(currentData);
     loadResaleData();
+    loadNotifications();
 
     // Load saved settings
     const savedSettings = localStorage.getItem('userSettings');
@@ -1311,6 +1518,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         applyTheme(settings.theme || 'default');
     }
+
+    // Periodic notification check
+    setInterval(loadNotifications, 30000); // Check every 30 seconds
 });
 
 // Keep all other existing functions (fetchData, updateNode, etc.)...
@@ -1497,25 +1707,27 @@ function updateNode() {
 
 // Keep all other existing functions...
 function deleteNode() {
-    if (!confirm(`Are you sure you want to delete /${selectedPath}?`)) return;
-
-    fetch('/api/delete_node', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({path: selectedPath})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            currentData = data.tree_data;
-            renderTree(currentData);
-            updateStatus(data.message, 'success', 'check-circle');
-            document.getElementById('selectedPath').innerHTML = '';
-            document.getElementById('nodeValue').value = '';
-            enableNodeActions(false);
-            document.getElementById('applyBtn').disabled = false;
-        } else {
-            updateStatus(data.error, 'error', 'exclamation-triangle');
+    customConfirm('Confirm Delete', `Are you sure you want to delete /${selectedPath}?`, (confirmed) => {
+        if (confirmed) {
+            fetch('/api/delete_node', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path: selectedPath})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentData = data.tree_data;
+                    renderTree(currentData);
+                    updateStatus(data.message, 'success', 'check-circle');
+                    document.getElementById('selectedPath').innerHTML = '';
+                    document.getElementById('nodeValue').value = '';
+                    enableNodeActions(false);
+                    document.getElementById('applyBtn').disabled = false;
+                } else {
+                    updateStatus(data.error, 'error', 'exclamation-triangle');
+                }
+            });
         }
     });
 }
@@ -1614,22 +1826,24 @@ function pushItem() {
 
 function applyChanges() {
     const url = document.getElementById('firebaseUrl').value.trim();
-    if (!confirm('Apply local changes to Firebase? This will overwrite corresponding data on the server.')) return;
+    customConfirm('Apply Changes', 'Apply local changes to Firebase? This will overwrite corresponding data on the server.', (confirmed) => {
+        if (confirmed) {
+            updateStatus('Applying changes to Firebase...', 'info', 'cloud-upload-alt');
 
-    updateStatus('Applying changes to Firebase...', 'info', 'cloud-upload-alt');
-
-    fetch('/api/apply_changes', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({url: url})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            updateStatus(data.message, 'success', 'check-circle');
-            document.getElementById('applyBtn').disabled = true;
-        } else {
-            updateStatus(data.error, 'error', 'exclamation-triangle');
+            fetch('/api/apply_changes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url: url})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus(data.message, 'success', 'check-circle');
+                    document.getElementById('applyBtn').disabled = true;
+                } else {
+                    updateStatus(data.error, 'error', 'exclamation-triangle');
+                }
+            });
         }
     });
 }
@@ -1654,7 +1868,7 @@ function searchData() {
             highlightSearchResult();
             updateStatus(data.message, 'success', 'search');
         } else {
-            updateStatus(data.error, 'error', 'search');
+            updateStatus(data.error, 'error', 'exclamation-triangle');
         }
     });
 }
@@ -1706,20 +1920,22 @@ function removeUrlProfile() {
         return;
     }
 
-    if (!confirm(`Remove URL profile "${name}"?`)) return;
-
-    fetch('/api/url_profiles', {
-        method: 'DELETE',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({name: name})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            updateStatus(data.message, 'success', 'check-circle');
-            location.reload();
-        } else {
-            updateStatus(data.error, 'error', 'exclamation-triangle');
+    customConfirm('Confirm Delete', `Remove URL profile "${name}"?`, (confirmed) => {
+        if (confirmed) {
+             fetch('/api/url_profiles', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus(data.message, 'success', 'check-circle');
+                    location.reload();
+                } else {
+                    updateStatus(data.error, 'error', 'exclamation-triangle');
+                }
+            });
         }
     });
 }
@@ -1817,18 +2033,20 @@ function validateSchema() {
     .then(data => {
         if (data.success) {
             updateStatus(data.message, 'success', 'check-circle');
-            alert('✅ ' + data.message);
+            customAlert('Validation Result', '✅ ' + data.message);
         } else {
             updateStatus(data.error, 'error', 'exclamation-triangle');
-            alert('❌ ' + data.error);
+            customAlert('Validation Result', '❌ ' + data.error);
         }
     });
 }
 
 function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        window.location.href = '/logout';
-    }
+    customConfirm('Confirm Logout', 'Are you sure you want to logout?', (confirmed) => {
+        if (confirmed) {
+            window.location.href = '/logout';
+        }
+    });
 }
 
 function setLoading(element, loading) {
