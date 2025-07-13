@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        
+
 
         <div class="settings-actions">
             <button onclick="applySettings()" class="apply-settings-btn">
@@ -109,6 +109,27 @@
     </div>
 </div>
 
+<div id="customAlert" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('customAlert')">&times;</span>
+        <h2 id="alertTitle"></h2>
+        <p id="alertMessage"></p>
+        <button class="btn-primary" onclick="closeModal('customAlert')">OK</button>
+    </div>
+</div>
+
+<div id="customDialog" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('customDialog')">&times;</span>
+        <h2 id="dialogTitle"></h2>
+        <p id="dialogMessage"></p>
+        <div class="dialog-buttons">
+            <button onclick="handleDialogConfirm()" class="btn-primary">Yes</button>
+            <button onclick="closeModal('customDialog')" class="btn-secondary">No</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function switchSettingsTab(tabName) {
     document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
@@ -119,151 +140,55 @@ function switchSettingsTab(tabName) {
 }
 
 function applySettings() {
+    const theme = document.getElementById('themeSelect').value;
+    const fontSize = document.getElementById('fontSizeSelect').value;
+
     const settings = {
-        // Appearance
-        theme: document.getElementById('themeSelect').value,
-        fontSize: document.getElementById('fontSizeSelect').value,
-        animationSpeed: document.getElementById('animationSpeed').value,
-        sidebarPosition: document.getElementById('sidebarPosition').value,
-        compactMode: document.getElementById('compactMode').checked,
-        glassEffect: document.getElementById('glassEffect').checked,
-        neonGlow: document.getElementById('neonGlow').checked,
-        particleBackground: document.getElementById('particleBackground').checked,
-
-        // Editor
-        autoSave: document.getElementById('autoSave').checked,
-        syntaxHighlight: document.getElementById('syntaxHighlight').checked,
-        lineNumbers: document.getElementById('lineNumbers').checked,
-        wordWrap: document.getElementById('wordWrap').checked,
-        autoComplete: document.getElementById('autoComplete').checked,
-        bracketMatching: document.getElementById('bracketMatching').checked,
-        autoExpandDepth: document.getElementById('autoExpandDepth').value,
-        showNodeIcons: document.getElementById('showNodeIcons').checked,
-        hoverHighlight: document.getElementById('hoverHighlight').checked,
-        autoExpand: document.getElementById('autoExpand').checked,
-        smoothAnimations: document.getElementById('smoothAnimations').checked,
-        iconType: document.getElementById('iconType').value,
-
-        // Notifications
-        desktopNotifications: document.getElementById('desktopNotifications').checked,
-        soundEffects: document.getElementById('soundEffects').checked,
-        successNotifications: document.getElementById('successNotifications').checked,
-        errorNotifications: document.getElementById('errorNotifications').checked,
-        chatNotifications: document.getElementById('chatNotifications').checked,
-        messageSound: document.getElementById('messageSound').checked,
-        typingIndicators: document.getElementById('typingIndicators').checked,
-        chatNotifications: document.getElementById('chatNotifications').checked,
-
-        // Advanced
-        debugMode: document.getElementById('debugMode').checked,
-        devConsole: document.getElementById('devConsole').checked,
-        experimentalFeatures: document.getElementById('experimentalFeatures').checked,
-        cacheDuration: document.getElementById('cacheDuration').value,
-        customShortcuts: document.getElementById('customShortcuts').checked,
-        hardwareAcceleration: document.getElementById('hardwareAcceleration').checked,
-        memoryOptimization: document.getElementById('memoryOptimization').checked,
-        lazyLoading: document.getElementById('lazyLoading').checked,
-
-        // Privacy
-        allowAnalytics: document.getElementById('allowAnalytics').checked,
-        errorReporting: document.getElementById('errorReporting').checked,
-        sessionRecording: document.getElementById('sessionRecording').checked,
-        autoLogout: document.getElementById('autoLogout').value,
-        twoFactorAuth: document.getElementById('twoFactorAuth').checked,
-        loginNotifications: document.getElementById('loginNotifications').checked,
-        analytics: document.getElementById('analytics').checked,
-        autoBackup: document.getElementById('autoBackup').checked,
-        sessionPersistence: document.getElementById('sessionPersistence').checked
+        theme: theme,
+        fontSize: fontSize
     };
 
+    // Save to localStorage
     localStorage.setItem('userSettings', JSON.stringify(settings));
 
     // Apply theme immediately
-    applyTheme(settings.theme);
-    
-    // Apply other settings
-    applyAppearanceSettings(settings);
-    applyEditorSettings(settings);
-    
-    // Send to server
-    fetch('/api/settings', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(settings)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Settings applied successfully!', 'success');
-        } else {
-            showNotification('Failed to save settings to server', 'error');
-        }
-    });
+    applyTheme(theme);
 
-    // Show success message
-    showNotification('Settings applied successfully!', 'success');
+    // Apply font size
+    document.documentElement.style.setProperty('--base-font-size', fontSize + 'px');
 
-    // Apply theme change
-    fetch('/api/theme', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({theme: settings.theme})
-    });
+    customAlert('Settings Applied', 'Your settings have been saved and applied successfully!');
 }
 
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
-        themeSelect.value = theme;
-    }
-}
 
-function applyAppearanceSettings(settings) {
-    // Apply font size
-    document.documentElement.style.setProperty('--base-font-size', 
-        settings.fontSize === 'small' ? '12px' :
-        settings.fontSize === 'large' ? '16px' :
-        settings.fontSize === 'extra-large' ? '18px' : '14px'
-    );
-    
-    // Apply compact mode
-    if (settings.compactMode) {
-        document.body.classList.add('compact-mode');
-    } else {
-        document.body.classList.remove('compact-mode');
-    }
-    
-    // Apply visual effects
-    if (!settings.glassEffect) {
-        document.body.classList.add('no-glass');
-    } else {
-        document.body.classList.remove('no-glass');
-    }
-    
-    if (!settings.neonGlow) {
-        document.body.classList.add('no-glow');
-    } else {
-        document.body.classList.remove('no-glow');
-    }
-}
-
-function applyEditorSettings(settings) {
-    // These would be applied to the actual editor components
-    // For now, just show which settings are enabled
-    console.log('Editor settings applied:', {
-        autoSave: settings.autoSave,
-        syntaxHighlight: settings.syntaxHighlight,
-        lineNumbers: settings.lineNumbers,
-        wordWrap: settings.wordWrap
+    // Update theme selector in sidebar if it exists
+    const themeOptions = document.querySelectorAll('.theme-option');
+    themeOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.theme === theme) {
+            option.classList.add('active');
+        }
     });
 }
 
 function resetSettings() {
-    if (confirm('Reset all settings to default values?')) {
-        localStorage.removeItem('userSettings');
-        location.reload();
-    }
+    customConfirm('Reset Settings', 'Are you sure you want to reset all settings to default? This action cannot be undone.', (confirmed) => {
+        if (confirmed) {
+            localStorage.removeItem('userSettings');
+
+            // Reset form values
+            document.getElementById('themeSelect').value = 'default';
+            document.getElementById('fontSizeSelect').value = '14';
+
+            // Apply defaults
+            applyTheme('default');
+            document.documentElement.style.setProperty('--base-font-size', '14px');
+
+            customAlert('Settings Reset', 'All settings have been reset to default values.');
+        }
+    });
 }
 
 function exportSettings() {
@@ -277,7 +202,8 @@ function exportSettings() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showNotification('Settings exported successfully!', 'success');
+
+    customAlert('Export Complete', 'Settings have been exported successfully!');
 }
 
 function importSettings() {
@@ -292,16 +218,55 @@ function importSettings() {
                 try {
                     const settings = JSON.parse(e.target.result);
                     localStorage.setItem('userSettings', JSON.stringify(settings));
-                    showNotification('Settings imported successfully! Page will reload.', 'success');
-                    setTimeout(() => location.reload(), 2000);
+
+                    // Update form values
+                    if (settings.theme) document.getElementById('themeSelect').value = settings.theme;
+                    if (settings.fontSize) document.getElementById('fontSizeSelect').value = settings.fontSize;
+
+                    // Apply settings
+                    applySettings();
+
+                    customAlert('Import Complete', 'Settings have been imported and applied successfully!');
                 } catch (error) {
-                    showNotification('Invalid settings file', 'error');
+                    customAlert('Import Error', 'Invalid settings file. Please select a valid JSON file.');
                 }
             };
             reader.readAsText(file);
         }
     };
     input.click();
+}
+
+// Custom dialog functions
+let dialogCallback = null;
+
+function customAlert(title, message) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    showModal('customAlert');
+}
+
+function customConfirm(title, message, callback) {
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMessage').textContent = message;
+    dialogCallback = callback;
+    showModal('customDialog');
+}
+
+function handleDialogConfirm() {
+    if (dialogCallback) {
+        dialogCallback(true);
+        dialogCallback = null;
+    }
+    closeModal('customDialog');
+}
+
+function showModal(modalId) {
+    document.getElementById(modalId).style.display = "block";
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
 }
 
 function exportUserData() {
@@ -313,7 +278,7 @@ function exportUserData() {
             export_date: new Date().toISOString()
         }
     };
-    
+
     const blob = new Blob([JSON.stringify(userData, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -323,7 +288,7 @@ function exportUserData() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     showNotification('User data exported successfully', 'success');
 }
 
@@ -332,7 +297,7 @@ function clearUserData() {
         localStorage.clear();
         sessionStorage.clear();
         showNotification('Local data cleared successfully', 'success');
-        
+
         // Reset form
         resetSettings();
     }
@@ -377,42 +342,25 @@ function goBack() {
     window.location.href = '/';
 }
 
-// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-    // Load saved settings
+    // Load saved settings when page loads
     const savedSettings = localStorage.getItem('userSettings');
     if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
+        try {
+            const settings = JSON.parse(savedSettings);
 
-        // Apply saved settings to form elements
-        Object.keys(settings).forEach(key => {
-            const element = document.getElementById(key + 'Select') || document.getElementById(key);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = settings[key];
-                } else {
-                    element.value = settings[key];
-                }
+            // Apply saved values to form
+            if (settings.theme) {
+                document.getElementById('themeSelect').value = settings.theme;
+                applyTheme(settings.theme);
             }
-        });
-
-        applyTheme(settings.theme || 'default');
-        applyAppearanceSettings(settings);
-        applyEditorSettings(settings);
-    }
-
-    // Enable desktop notifications if permission granted
-    if (Notification.permission === 'granted') {
-        document.getElementById('desktopNotifications').checked = true;
-    }
-    
-    // Request notification permission if not already granted
-    if ('Notification' in window && Notification.permission === 'default') {
-        document.getElementById('desktopNotifications').addEventListener('change', function() {
-            if (this.checked) {
-                Notification.requestPermission();
+            if (settings.fontSize) {
+                document.getElementById('fontSizeSelect').value = settings.fontSize;
+                document.documentElement.style.setProperty('--base-font-size', settings.fontSize + 'px');
             }
-        });
+        } catch (error) {
+            console.log('Error loading saved settings:', error);
+        }
     }
 });
 
@@ -440,6 +388,73 @@ style.textContent = `
 
     .no-glow *:hover {
         box-shadow: none !important;
+    }
+
+    /* Custom Dialog Styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modal-content {
+        background-color: var(--bg-primary);
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid var(--border-primary);
+        border-radius: 16px;
+        width: 80%; /* Could be more or less, depending on screen size */
+        max-width: 600px;
+        box-shadow: var(--shadow-card);
+        position: relative;
+    }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 16px;
+        color: var(--fg-secondary);
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: var(--fg-primary);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Add Animation */
+    .modal-content {
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s
+    }
+
+    @-webkit-keyframes animatetop {
+        from {top:-300px; opacity:0}
+        to {top:0; opacity:1}
+    }
+
+    @keyframes animatetop {
+        from {top:-300px; opacity:0}
+        to {top:0; opacity:1}
+    }
+
+    .dialog-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
     }
 `;
 document.head.appendChild(style);

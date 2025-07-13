@@ -989,6 +989,146 @@
             display: inline-block;
             margin-left: 5px;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .notifications-modal, .messages-modal {
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-primary);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--fg-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            min-width: auto;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-primary);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .notifications-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .notifications-list, .messages-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item, .message-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--fg-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover, .message-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+        .notification-item.unread, .message-item.unread {
+            background: var(--glass-bg);
+            border-color: var(--accent-primary);
+        }
+
+        .notification-header, .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .notification-title, .message-sender {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .notification-time {
+            font-size: 0.8em;
+            color: var(--fg-secondary);
+        }
+
+        .notification-content, .message-preview {
+            color: var(--fg-secondary);
+            line-height: 1.4;
+        }
+
+        /* Custom Dialog styles */
+        .custom-dialog, .custom-alert {
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .dialog-header, .alert-header {
+            border-bottom: 1px solid var(--border-primary);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .dialog-content, .alert-content {
+            margin-bottom: 24px;
+            color: var(--fg-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dialog-actions, .alert-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .modal-content-scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content-scrollable::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 3px;
+        }
+
+        .modal-content-scrollable::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -1002,6 +1142,10 @@
             <li><a href="/">
                 <i class="fas fa-home"></i>
                 Dashboard
+            </a></li>
+            <li><a href="/resale">
+                <i class="fas fa-store"></i>
+                Resale System
             </a></li>
             <li><a href="/profile">
                 <i class="fas fa-user"></i>
@@ -1042,6 +1186,83 @@
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content notifications-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </h3>
+                <button onclick="closeModal('notificationsModal')" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="notifications-content">
+                <div class="notifications-actions">
+                    <button onclick="markAllNotificationsRead()" class="btn-secondary">
+                        <i class="fas fa-check"></i>
+                        Mark All Read
+                    </button>
+                    <button onclick="clearAllNotifications()" class="btn-secondary">
+                        <i class="fas fa-trash"></i>
+                        Clear All
+                    </button>
+                </div>
+                <div id="notificationsList" class="notifications-list modal-content-scrollable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Modal -->
+    <div id="messagesModal" class="modal">
+        <div class="modal-content messages-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-envelope"></i>
+                    Messages
+                </h3>
+                <button onclick="closeModal('messagesModal')" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="messages-content">
+                <div id="messagesList" class="messages-list modal-content-scrollable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog -->
+    <div id="customDialog" class="modal">
+        <div class="modal-content custom-dialog">
+            <div class="dialog-header">
+                <h3 id="dialogTitle">Confirm</h3>
+            </div>
+            <div class="dialog-content">
+                <p id="dialogMessage">Are you sure?</p>
+            </div>
+            <div class="dialog-actions">
+                <button id="dialogConfirm" onclick="handleDialogConfirm()">Confirm</button>
+                <button id="dialogCancel" onclick="closeModal('customDialog')" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert -->
+    <div id="customAlert" class="modal">
+        <div class="modal-content custom-alert">
+            <div class="alert-header">
+                <h3 id="alertTitle">Notice</h3>
+            </div>
+            <div class="alert-content">
+                <p id="alertMessage">Message</p>
+            </div>
+            <div class="alert-actions">
+                <button onclick="closeModal('customAlert')">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
@@ -1077,13 +1298,125 @@
         });
 
         function showNotifications() {
-            // Placeholder for notifications functionality
-            alert('Notifications feature coming soon!');
+            loadNotifications();
+            showModal('notificationsModal');
+            toggleSidebar();
         }
 
         function showMessages() {
-            // Placeholder for messages functionality
-            alert('Messages feature coming soon!');
+            loadMessages();
+            showModal('messagesModal');
+            toggleSidebar();
+        }
+
+        function loadNotifications() {
+            fetch('/api/notifications')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayNotifications(data.notifications);
+                    updateNotificationDot(data.unread_count);
+                }
+            });
+        }
+
+        function loadMessages() {
+            fetch('/api/messages')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayMessages(data.conversations);
+                    updateMessagesDot(data.unread_count);
+                }
+            });
+        }
+
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notificationsList');
+            if (!container) return;
+
+            if (notifications.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--fg-secondary); padding: 20px;">No notifications</div>';
+                return;
+            }
+
+            container.innerHTML = notifications.map(notif => `
+                <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="markNotificationRead('${notif.id}')">
+                    <div class="notification-header">
+                        <span class="notification-title">${notif.title}</span>
+                        <span class="notification-time">${new Date(notif.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="notification-content">
+                        ${notif.message}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayMessages(conversations) {
+            const container = document.getElementById('messagesList');
+            if (!container) return;
+
+            if (conversations.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--fg-secondary); padding: 20px;">No messages</div>';
+                return;
+            }
+
+            container.innerHTML = conversations.map(conv => `
+                <div class="message-item ${conv.unread_count > 0 ? 'unread' : ''}" onclick="openIndividualChat('${conv.participant}')">
+                    <div class="message-header">
+                        <span class="message-sender">${conv.participant}</span>
+                        <span class="notification-time">${new Date(conv.last_message_time).toLocaleString()}</span>
+                    </div>
+                    <div class="message-preview">
+                        ${conv.last_message}
+                        ${conv.unread_count > 0 ? `<span style="color: var(--accent-tertiary); font-weight: 600;"> (${conv.unread_count} new)</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function markNotificationRead(notificationId) {
+            fetch('/api/notifications/read', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({notification_id: notificationId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotifications();
+                }
+            });
+        }
+
+        function updateNotificationDot(unreadCount) {
+            const dot = document.getElementById('notificationDot');
+            if (dot) {
+                dot.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        function updateMessagesDot(unreadCount) {
+            const dot = document.getElementById('messagesDot');
+            if (dot) {
+                dot.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        function openIndividualChat(participant) {
+            // This function will be implemented in the main app
+            console.log('Opening chat with:', participant);
         }
 
          // Function to show notification dot (call this when a new notification arrives)
