@@ -1168,6 +1168,55 @@ def admin_users():
         
         return jsonify({'success': True, 'message': f'User {username} deleted successfully'})
 
+@app.route('/api/admin/resellers', methods=['GET', 'POST', 'DELETE'])
+def admin_resellers():
+    if 'user_tier' not in session or not session.get('is_admin', False):
+        return jsonify({'success': False, 'error': 'Admin access required'})
+    
+    if request.method == 'GET':
+        return jsonify({'success': True, 'resellers': ADMIN_DATA['resellers']})
+    
+    elif request.method == 'POST':
+        username = request.json.get('username', '').strip()
+        package = request.json.get('package', '$25')
+        
+        if not username:
+            return jsonify({'success': False, 'error': 'Username is required'})
+        
+        # Check if user exists in CREDENTIALS
+        if username not in CREDENTIALS:
+            return jsonify({'success': False, 'error': 'User not found'})
+        
+        # Check if already a reseller
+        reseller_exists = any(r['username'] == username for r in ADMIN_DATA['resellers'])
+        if reseller_exists:
+            return jsonify({'success': False, 'error': 'User is already a reseller'})
+        
+        # Get package details
+        package_info = ADMIN_DATA['reseller_packages'].get(package, {'credits': 25, 'price': 25})
+        
+        # Add as reseller
+        ADMIN_DATA['resellers'].append({
+            "username": username,
+            "status": "approved",
+            "commission_rate": 10,
+            "credits": package_info['credits'],
+            "earnings": {"pending": 0, "paid": 0},
+            "platforms": [],
+            "approved_date": datetime.now().isoformat(),
+            "package": package
+        })
+        
+        return jsonify({'success': True, 'message': f'User {username} added as reseller with {package} package'})
+    
+    elif request.method == 'DELETE':
+        username = request.json.get('username', '').strip()
+        
+        # Remove from resellers
+        ADMIN_DATA['resellers'] = [r for r in ADMIN_DATA['resellers'] if r['username'] != username]
+        
+        return jsonify({'success': True, 'message': f'Reseller {username} removed successfully'})
+
 @app.route('/api/admin/referrals', methods=['GET', 'POST'])
 def admin_referrals():
     if 'user_tier' not in session or not session.get('is_admin', False):
@@ -1194,7 +1243,9 @@ def admin_referrals():
             "used": 0,
             "limit": limit,
             "tier": tier,
-            "status": "active"
+            "status": "active",
+            "creator": "admin",
+            "commission_rate": 10
         })
         
         return jsonify({'success': True, 'message': f'Referral code {code} created successfully'})

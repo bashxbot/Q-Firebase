@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -893,16 +892,16 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            
+
             .header {
                 flex-direction: column;
                 gap: 16px;
             }
-            
+
             .url-section {
                 order: 1;
             }
-            
+
             .header-buttons {
                 order: 2;
                 justify-content: center;
@@ -913,12 +912,12 @@
             .content-wrapper.shifted {
                 margin-left: 0;
             }
-            
+
             .sidebar {
                 width: 100vw;
                 left: -100vw;
             }
-            
+
             .sidebar.open {
                 left: 0;
             }
@@ -928,33 +927,33 @@
             .container {
                 padding: 16px;
             }
-            
+
             .header {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 16px;
             }
-            
+
             .url-section {
                 flex-direction: column;
                 gap: 12px;
                 min-width: unset;
             }
-            
+
             .search-section {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 12px;
             }
-            
+
             .node-actions {
                 flex-direction: column;
             }
-            
+
             .node-actions button {
                 min-width: unset;
             }
-            
+
             .bottom-actions {
                 flex-direction: column;
             }
@@ -981,9 +980,140 @@
             0% { left: -100%; }
             100% { left: 100%; }
         }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-dots {
+            background: none;
+            border: none;
+            color: var(--fg-primary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            min-width: auto;
+        }
+
+        .menu-dots:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-primary);
+            transform: none;
+            box-shadow: none;
+        }
     </style>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            contentWrapper.classList.toggle('shifted');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+            contentWrapper.classList.remove('shifted');
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'default';
+            setTheme(theme);
+        }
+
+        window.onload = loadTheme;
+    </script>
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <div class="sidebar">
+        <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Menu</h3>
+            <button class="sidebar-close" onclick="closeSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="sidebar-nav">
+            <li>
+                <a href="/" class="active">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="/settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+            <li>
+                <a href="/reseller">
+                    <i class="fas fa-users"></i>
+                    <span>Reseller</span>
+                </a>
+            </li>
+            <li>
+                <a href="/subscriptions">
+                    <i class="fas fa-star"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+            <li>
+                <a href="/notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+        </ul>
+        <div class="theme-selector">
+            <h4>Theme</h4>
+            <div class="theme-grid">
+                <div class="theme-option" onclick="setTheme('default')">Default</div>
+                <div class="theme-option" onclick="setTheme('cyberpunk')">Cyberpunk</div>
+                <div class="theme-option" onclick="setTheme('matrix')">Matrix</div>
+                <div class="theme-option" onclick="setTheme('purple')">Purple</div>
+                <div class="theme-option" onclick="setTheme('sunset')">Sunset</div>
+            </div>
+        </div>
+    </div>
+    <button class="menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-th"></i>
+    </button>
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="header">
+        <div class="header-left">
+            <button class="menu-dots" onclick="toggleSidebar()">
+                <i class="fas fa-th"></i>
+            </button>
+            <div class="edition-label">{{ tier }}</div>
+        </div>
+
+            <div class="url-section">
+                <label for="firebaseUrl">Firebase URL:</label>
+                <input type="url" id="firebaseUrl" name="firebaseUrl" value="{{ firebase_url }}" required>
+            </div>
+            <div class="header-buttons">
+                <button onclick="applySettings()">Apply Settings</button>
+                <button class="btn-secondary" onclick="resetSettings()">Reset Settings</button>
+            </div>
+        </div>
+        {% block body %}{% endblock %}
+    </div>
+</div>
 </body>
 </html>

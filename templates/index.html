@@ -25,21 +25,26 @@
                 <i class="fas fa-database"></i>
                 Firebase Editor
             </a></li>
-            <li><a href="#" onclick="openResaleSystem()">
+            <li><a href="/resale">
                 <i class="fas fa-store"></i>
                 Resale System
             </a></li>
-            <li><a href="#" onclick="openProfile()">
+            <li><a href="/profile">
                 <i class="fas fa-user-circle"></i>
                 Profile
             </a></li>
             {% if tier == 'Elite Edition' and session.get('is_admin') %}
-            <li><a href="#" onclick="openAdminPanel()">
+            <li><a href="/admin">
                 <i class="fas fa-crown"></i>
                 Admin Panel
             </a></li>
             {% endif %}
-            <li><a href="#" onclick="openSettings()">
+            <li><a href="#" onclick="showNotifications()">
+                <i class="fas fa-bell"></i>
+                Notifications
+                <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+            </a></li>
+            <li><a href="/settings">
                 <i class="fas fa-cog"></i>
                 Settings
             </a></li>
@@ -570,6 +575,21 @@
 <input type="file" id="schemaInput" accept=".json" style="display: none;" onchange="handleSchemaLoad(event)">
 
 <style>
+/* Notification badge styles */
+.notification-badge {
+    background: var(--accent-tertiary);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+    min-width: 16px;
+    text-align: center;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
 /* Additional styles for resale system */
 .resale-header {
     text-align: center;
@@ -1121,25 +1141,27 @@ function enableNodeActions(enable) {
     });
 }
 
-// New Window Functions
-function openResaleSystem() {
-    window.open('/resale', '_blank');
+// Notification Functions
+function showNotifications() {
+    showModal('notificationsModal');
+    loadNotifications();
     closeSidebar();
 }
 
-function openProfile() {
-    window.open('/profile', '_blank');
-    closeSidebar();
-}
-
-function openAdminPanel() {
-    window.open('/admin', '_blank');
-    closeSidebar();
-}
-
-function openSettings() {
-    window.open('/settings', '_blank');
-    closeSidebar();
+function updateNotificationBadge() {
+    fetch('/api/notifications')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const badge = document.getElementById('notificationBadge');
+            if (data.unread_count > 0) {
+                badge.textContent = data.unread_count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    });
 }
 
 function loadResaleData() {
@@ -1826,6 +1848,11 @@ function pushItem() {
 
 function applyChanges() {
     const url = document.getElementById('firebaseUrl').value.trim();
+    if (!url) {
+        customAlert('Error', 'Please enter a Firebase URL first');
+        return;
+    }
+    
     customConfirm('Apply Changes', 'Apply local changes to Firebase? This will overwrite corresponding data on the server.', (confirmed) => {
         if (confirmed) {
             updateStatus('Applying changes to Firebase...', 'info', 'cloud-upload-alt');
@@ -2073,6 +2100,9 @@ function updateStatus(message, type = 'info', icon = 'info-circle') {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme system
     initThemeSystem();
+    
+    // Initialize notification badge
+    updateNotificationBadge();
 
     const urlProfile = document.getElementById('urlProfile');
     if (urlProfile) {
